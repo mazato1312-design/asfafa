@@ -1,202 +1,451 @@
-declare const IncrementSymbol: unique symbol;
-declare const EpochSymbol: unique symbol;
-declare const ProcessIdSymbol: unique symbol;
-declare const WorkerIdSymbol: unique symbol;
-/**
- * The maximum value the `workerId` field accepts in snowflakes.
- */
-declare const MaximumWorkerId = 31n;
-/**
- * The maximum value the `processId` field accepts in snowflakes.
- */
-declare const MaximumProcessId = 31n;
-/**
- * The maximum value the `increment` field accepts in snowflakes.
- */
-declare const MaximumIncrement = 4095n;
-/**
- * A class for generating and deconstructing Twitter snowflakes.
- *
- * A {@link https://developer.twitter.com/en/docs/twitter-ids Twitter snowflake}
- * is a 64-bit unsigned integer with 4 fields that have a fixed epoch value.
- *
- * If we have a snowflake `266241948824764416` we can represent it as binary:
- * ```
- * 64                                          22     17     12          0
- *  000000111011000111100001101001000101000000  00001  00000  000000000000
- *           number of ms since epoch           worker  pid    increment
- * ```
- */
-declare class Snowflake {
+/// <reference types="node" />
+
+import { EventEmitter } from "events";
+import {
+    Agent,
+    ClientRequest,
+    ClientRequestArgs,
+    IncomingMessage,
+    OutgoingHttpHeaders,
+    Server as HTTPServer,
+} from "http";
+import { Server as HTTPSServer } from "https";
+import { createConnection } from "net";
+import { Duplex, DuplexOptions } from "stream";
+import { SecureContextOptions } from "tls";
+import { URL } from "url";
+import { ZlibOptions } from "zlib";
+
+// can not get all overload of BufferConstructor['from'], need to copy all it's first arguments here
+// https://github.com/microsoft/TypeScript/issues/32164
+type BufferLike =
+    | string
+    | Buffer
+    | DataView
+    | number
+    | ArrayBufferView
+    | Uint8Array
+    | ArrayBuffer
+    | SharedArrayBuffer
+    | Blob
+    | readonly any[]
+    | readonly number[]
+    | { valueOf(): ArrayBuffer }
+    | { valueOf(): SharedArrayBuffer }
+    | { valueOf(): Uint8Array }
+    | { valueOf(): readonly number[] }
+    | { valueOf(): string }
+    | { [Symbol.toPrimitive](hint: string): string };
+
+// WebSocket socket.
+declare class WebSocket extends EventEmitter {
+    /** The connection is not yet open. */
+    static readonly CONNECTING: 0;
+    /** The connection is open and ready to communicate. */
+    static readonly OPEN: 1;
+    /** The connection is in the process of closing. */
+    static readonly CLOSING: 2;
+    /** The connection is closed. */
+    static readonly CLOSED: 3;
+
+    binaryType: "nodebuffer" | "arraybuffer" | "fragments";
+    readonly bufferedAmount: number;
+    readonly extensions: string;
+    /** Indicates whether the websocket is paused */
+    readonly isPaused: boolean;
+    readonly protocol: string;
+    /** The current state of the connection */
+    readonly readyState:
+        | typeof WebSocket.CONNECTING
+        | typeof WebSocket.OPEN
+        | typeof WebSocket.CLOSING
+        | typeof WebSocket.CLOSED;
+    readonly url: string;
+
+    /** The connection is not yet open. */
+    readonly CONNECTING: 0;
+    /** The connection is open and ready to communicate. */
+    readonly OPEN: 1;
+    /** The connection is in the process of closing. */
+    readonly CLOSING: 2;
+    /** The connection is closed. */
+    readonly CLOSED: 3;
+
+    onopen: ((event: WebSocket.Event) => void) | null;
+    onerror: ((event: WebSocket.ErrorEvent) => void) | null;
+    onclose: ((event: WebSocket.CloseEvent) => void) | null;
+    onmessage: ((event: WebSocket.MessageEvent) => void) | null;
+
+    constructor(address: null);
+    constructor(address: string | URL, options?: WebSocket.ClientOptions | ClientRequestArgs);
+    constructor(
+        address: string | URL,
+        protocols?: string | string[],
+        options?: WebSocket.ClientOptions | ClientRequestArgs,
+    );
+
+    close(code?: number, data?: string | Buffer): void;
+    ping(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
+    pong(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
+    // https://github.com/websockets/ws/issues/2076#issuecomment-1250354722
+    send(data: BufferLike, cb?: (err?: Error) => void): void;
+    send(
+        data: BufferLike,
+        options: {
+            mask?: boolean | undefined;
+            binary?: boolean | undefined;
+            compress?: boolean | undefined;
+            fin?: boolean | undefined;
+        },
+        cb?: (err?: Error) => void,
+    ): void;
+    terminate(): void;
+
     /**
-     * Alias for {@link deconstruct}
+     * Pause the websocket causing it to stop emitting events. Some events can still be
+     * emitted after this is called, until all buffered data is consumed. This method
+     * is a noop if the ready state is `CONNECTING` or `CLOSED`.
      */
-    decode: (id: string | bigint) => DeconstructedSnowflake;
+    pause(): void;
     /**
-     * Internal reference of the epoch passed in the constructor
-     * @internal
+     * Make a paused socket resume emitting events. This method is a noop if the ready
+     * state is `CONNECTING` or `CLOSED`.
      */
-    private readonly [EpochSymbol];
-    /**
-     * Internal incrementor for generating snowflakes
-     * @internal
-     */
-    private [IncrementSymbol];
-    /**
-     * The process ID that will be used by default in the generate method
-     * @internal
-     */
-    private [ProcessIdSymbol];
-    /**
-     * The worker ID that will be used by default in the generate method
-     * @internal
-     */
-    private [WorkerIdSymbol];
-    /**
-     * @param epoch the epoch to use
-     */
-    constructor(epoch: number | bigint | Date);
-    /**
-     * The epoch for this snowflake
-     */
-    get epoch(): bigint;
-    /**
-     * Gets the configured process ID
-     */
-    get processId(): bigint;
-    /**
-     * Sets the process ID that will be used by default for the {@link generate} method
-     * @param value The new value, will be coerced to BigInt and masked with `0b11111n`
-     */
-    set processId(value: number | bigint);
-    /**
-     * Gets the configured worker ID
-     */
-    get workerId(): bigint;
-    /**
-     * Sets the worker ID that will be used by default for the {@link generate} method
-     * @param value The new value, will be coerced to BigInt and masked with `0b11111n`
-     */
-    set workerId(value: number | bigint);
-    /**
-     * Generates a snowflake given an epoch and optionally a timestamp
-     * @param options options to pass into the generator, see {@link SnowflakeGenerateOptions}
-     *
-     * **note** when `increment` is not provided it defaults to the private `increment` of the instance
-     * @example
-     * ```typescript
-     * const epoch = new Date('2000-01-01T00:00:00.000Z');
-     * const snowflake = new Snowflake(epoch).generate();
-     * ```
-     * @returns A unique snowflake
-     */
-    generate({ increment, timestamp, workerId, processId }?: SnowflakeGenerateOptions): bigint;
-    /**
-     * Deconstructs a snowflake given a snowflake ID
-     * @param id the snowflake to deconstruct
-     * @returns a deconstructed snowflake
-     * @example
-     * ```typescript
-     * const epoch = new Date('2000-01-01T00:00:00.000Z');
-     * const snowflake = new Snowflake(epoch).deconstruct('3971046231244935168');
-     * ```
-     */
-    deconstruct(id: string | bigint): DeconstructedSnowflake;
-    /**
-     * Retrieves the timestamp field's value from a snowflake.
-     * @param id The snowflake to get the timestamp value from.
-     * @returns The UNIX timestamp that is stored in `id`.
-     */
-    timestampFrom(id: string | bigint): number;
-    /**
-     * Returns a number indicating whether a reference snowflake comes before, or after, or is same as the given
-     * snowflake in sort order.
-     * @param a The first snowflake to compare.
-     * @param b The second snowflake to compare.
-     * @returns `-1` if `a` is older than `b`, `0` if `a` and `b` are equals, `1` if `a` is newer than `b`.
-     * @example Sort snowflakes in ascending order
-     * ```typescript
-     * const ids = ['737141877803057244', '1056191128120082432', '254360814063058944'];
-     * console.log(ids.sort((a, b) => Snowflake.compare(a, b)));
-     * // → ['254360814063058944', '737141877803057244', '1056191128120082432'];
-     * ```
-     * @example Sort snowflakes in descending order
-     * ```typescript
-     * const ids = ['737141877803057244', '1056191128120082432', '254360814063058944'];
-     * console.log(ids.sort((a, b) => -Snowflake.compare(a, b)));
-     * // → ['1056191128120082432', '737141877803057244', '254360814063058944'];
-     * ```
-     */
-    static compare(a: string | bigint, b: string | bigint): -1 | 0 | 1;
-}
-/**
- * Options for Snowflake#generate
- */
-interface SnowflakeGenerateOptions {
-    /**
-     * Timestamp or date of the snowflake to generate
-     * @default Date.now()
-     */
-    timestamp?: number | bigint | Date;
-    /**
-     * The increment to use
-     * @default 0n
-     * @remark keep in mind that this bigint is auto-incremented between generate calls
-     */
-    increment?: bigint;
-    /**
-     * The worker ID to use, will be truncated to 5 bits (0-31)
-     * @default 0n
-     */
-    workerId?: bigint;
-    /**
-     * The process ID to use, will be truncated to 5 bits (0-31)
-     * @default 1n
-     */
-    processId?: bigint;
-}
-/**
- * Object returned by Snowflake#deconstruct
- */
-interface DeconstructedSnowflake {
-    /**
-     * The id in BigInt form
-     */
-    id: bigint;
-    /**
-     * The timestamp stored in the snowflake
-     */
-    timestamp: bigint;
-    /**
-     * The worker id stored in the snowflake
-     */
-    workerId: bigint;
-    /**
-     * The process id stored in the snowflake
-     */
-    processId: bigint;
-    /**
-     * The increment stored in the snowflake
-     */
-    increment: bigint;
-    /**
-     * The epoch to use in the snowflake
-     */
-    epoch: bigint;
+    resume(): void;
+
+    // HTML5 WebSocket events
+    addEventListener<K extends keyof WebSocket.WebSocketEventMap>(
+        type: K,
+        listener:
+            | ((event: WebSocket.WebSocketEventMap[K]) => void)
+            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
+        options?: WebSocket.EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof WebSocket.WebSocketEventMap>(
+        type: K,
+        listener:
+            | ((event: WebSocket.WebSocketEventMap[K]) => void)
+            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
+    ): void;
+
+    // Events
+    on(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    on(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    on(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    on(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    on(event: "open", listener: (this: WebSocket) => void): this;
+    on(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    on(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    on(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    on(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    once(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    once(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    once(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    once(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    once(event: "open", listener: (this: WebSocket) => void): this;
+    once(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    once(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    once(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    once(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    off(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    off(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    off(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    off(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    off(event: "open", listener: (this: WebSocket) => void): this;
+    off(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    off(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    off(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    off(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    addListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
+    addListener(event: "error", listener: (error: Error) => void): this;
+    addListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
+    addListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
+    addListener(event: "open", listener: () => void): this;
+    addListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
+    addListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
+    addListener(
+        event: "unexpected-response",
+        listener: (request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    addListener(event: string | symbol, listener: (...args: any[]) => void): this;
+
+    removeListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
+    removeListener(event: "error", listener: (error: Error) => void): this;
+    removeListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
+    removeListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
+    removeListener(event: "open", listener: () => void): this;
+    removeListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
+    removeListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
+    removeListener(
+        event: "unexpected-response",
+        listener: (request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
-/**
- * A class for parsing snowflake ids using Discord's snowflake epoch
- *
- * Which is 2015-01-01 at 00:00:00.000 UTC+0, {@linkplain https://discord.com/developers/docs/reference#snowflakes}
- */
-declare const DiscordSnowflake: Snowflake;
+declare namespace WebSocket {
+    /**
+     * Data represents the raw message payload received over the WebSocket.
+     */
+    type RawData = Buffer | ArrayBuffer | Buffer[];
 
-/**
- * A class for parsing snowflake ids using Twitter's snowflake epoch
- *
- * Which is 2010-11-04 at 01:42:54.657 UTC+0, found in the archived snowflake repository {@linkplain https://github.com/twitter-archive/snowflake/blob/b3f6a3c6ca8e1b6847baa6ff42bf72201e2c2231/src/main/scala/com/twitter/service/snowflake/IdWorker.scala#L25}
- */
-declare const TwitterSnowflake: Snowflake;
+    /**
+     * Data represents the message payload received over the WebSocket.
+     */
+    type Data = string | Buffer | ArrayBuffer | Buffer[];
 
-export { type DeconstructedSnowflake, DiscordSnowflake, MaximumIncrement, MaximumProcessId, MaximumWorkerId, Snowflake, type SnowflakeGenerateOptions, TwitterSnowflake };
+    /**
+     * CertMeta represents the accepted types for certificate & key data.
+     */
+    type CertMeta = string | string[] | Buffer | Buffer[];
+
+    /**
+     * VerifyClientCallbackSync is a synchronous callback used to inspect the
+     * incoming message. The return value (boolean) of the function determines
+     * whether or not to accept the handshake.
+     */
+    type VerifyClientCallbackSync<Request extends IncomingMessage = IncomingMessage> = (info: {
+        origin: string;
+        secure: boolean;
+        req: Request;
+    }) => boolean;
+
+    /**
+     * VerifyClientCallbackAsync is an asynchronous callback used to inspect the
+     * incoming message. The return value (boolean) of the function determines
+     * whether or not to accept the handshake.
+     */
+    type VerifyClientCallbackAsync<Request extends IncomingMessage = IncomingMessage> = (
+        info: { origin: string; secure: boolean; req: Request },
+        callback: (res: boolean, code?: number, message?: string, headers?: OutgoingHttpHeaders) => void,
+    ) => void;
+
+    /**
+     * FinishRequestCallback is a callback for last minute customization of the
+     * headers. If finishRequest is set, then it has the responsibility to call
+     * request.end() once it is done setting request headers.
+     */
+    type FinishRequestCallback = (request: ClientRequest, websocket: WebSocket) => void;
+
+    interface ClientOptions extends SecureContextOptions {
+        protocol?: string | undefined;
+        followRedirects?: boolean | undefined;
+        generateMask?(mask: Buffer): void;
+        handshakeTimeout?: number | undefined;
+        maxRedirects?: number | undefined;
+        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
+        localAddress?: string | undefined;
+        protocolVersion?: number | undefined;
+        headers?: { [key: string]: string } | undefined;
+        origin?: string | undefined;
+        agent?: Agent | undefined;
+        host?: string | undefined;
+        family?: number | undefined;
+        checkServerIdentity?(servername: string, cert: CertMeta): boolean;
+        rejectUnauthorized?: boolean | undefined;
+        allowSynchronousEvents?: boolean | undefined;
+        autoPong?: boolean | undefined;
+        maxPayload?: number | undefined;
+        skipUTF8Validation?: boolean | undefined;
+        createConnection?: typeof createConnection | undefined;
+        finishRequest?: FinishRequestCallback | undefined;
+    }
+
+    interface PerMessageDeflateOptions {
+        serverNoContextTakeover?: boolean | undefined;
+        clientNoContextTakeover?: boolean | undefined;
+        serverMaxWindowBits?: number | undefined;
+        clientMaxWindowBits?: number | undefined;
+        zlibDeflateOptions?:
+            | {
+                flush?: number | undefined;
+                finishFlush?: number | undefined;
+                chunkSize?: number | undefined;
+                windowBits?: number | undefined;
+                level?: number | undefined;
+                memLevel?: number | undefined;
+                strategy?: number | undefined;
+                dictionary?: Buffer | Buffer[] | DataView | undefined;
+                info?: boolean | undefined;
+            }
+            | undefined;
+        zlibInflateOptions?: ZlibOptions | undefined;
+        threshold?: number | undefined;
+        concurrencyLimit?: number | undefined;
+    }
+
+    interface Event {
+        type: string;
+        target: WebSocket;
+    }
+
+    interface ErrorEvent {
+        error: any;
+        message: string;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface CloseEvent {
+        wasClean: boolean;
+        code: number;
+        reason: string;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface MessageEvent {
+        data: Data;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface WebSocketEventMap {
+        open: Event;
+        error: ErrorEvent;
+        close: CloseEvent;
+        message: MessageEvent;
+    }
+
+    interface EventListenerOptions {
+        once?: boolean | undefined;
+    }
+
+    interface ServerOptions<
+        U extends typeof WebSocket = typeof WebSocket,
+        V extends typeof IncomingMessage = typeof IncomingMessage,
+    > {
+        host?: string | undefined;
+        port?: number | undefined;
+        backlog?: number | undefined;
+        server?: HTTPServer<V> | HTTPSServer<V> | undefined;
+        verifyClient?:
+            | VerifyClientCallbackAsync<InstanceType<V>>
+            | VerifyClientCallbackSync<InstanceType<V>>
+            | undefined;
+        handleProtocols?: (protocols: Set<string>, request: InstanceType<V>) => string | false;
+        path?: string | undefined;
+        noServer?: boolean | undefined;
+        allowSynchronousEvents?: boolean | undefined;
+        autoPong?: boolean | undefined;
+        clientTracking?: boolean | undefined;
+        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
+        maxPayload?: number | undefined;
+        skipUTF8Validation?: boolean | undefined;
+        WebSocket?: U | undefined;
+    }
+
+    interface AddressInfo {
+        address: string;
+        family: string;
+        port: number;
+    }
+}
+
+export import AddressInfo = WebSocket.AddressInfo;
+export import CertMeta = WebSocket.CertMeta;
+export import ClientOptions = WebSocket.ClientOptions;
+export import CloseEvent = WebSocket.CloseEvent;
+export import Data = WebSocket.Data;
+export import ErrorEvent = WebSocket.ErrorEvent;
+export import Event = WebSocket.Event;
+export import EventListenerOptions = WebSocket.EventListenerOptions;
+export import FinishRequestCallback = WebSocket.FinishRequestCallback;
+export import MessageEvent = WebSocket.MessageEvent;
+export import PerMessageDeflateOptions = WebSocket.PerMessageDeflateOptions;
+export import RawData = WebSocket.RawData;
+export import ServerOptions = WebSocket.ServerOptions;
+export import VerifyClientCallbackAsync = WebSocket.VerifyClientCallbackAsync;
+export import VerifyClientCallbackSync = WebSocket.VerifyClientCallbackSync;
+
+// WebSocket Server
+declare class Server<
+    T extends typeof WebSocket = typeof WebSocket,
+    U extends typeof IncomingMessage = typeof IncomingMessage,
+> extends EventEmitter {
+    options: WebSocket.ServerOptions<T, U>;
+    path: string;
+    clients: Set<InstanceType<T>>;
+
+    constructor(options?: WebSocket.ServerOptions<T, U>, callback?: () => void);
+
+    address(): WebSocket.AddressInfo | string | null;
+    close(cb?: (err?: Error) => void): void;
+    handleUpgrade(
+        request: InstanceType<U>,
+        socket: Duplex,
+        upgradeHead: Buffer,
+        callback: (client: InstanceType<T>, request: InstanceType<U>) => void,
+    ): void;
+    shouldHandle(request: InstanceType<U>): boolean | Promise<boolean>;
+
+    // Events
+    on(event: "connection", cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+    on(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+    on(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+    on(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+    on(
+        event: "wsClientError",
+        cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+    ): this;
+    on(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+    once(
+        event: "connection",
+        cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void,
+    ): this;
+    once(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+    once(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+    once(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+    once(
+        event: "wsClientError",
+        cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+    ): this;
+    once(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+    off(event: "connection", cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+    off(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+    off(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+    off(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+    off(
+        event: "wsClientError",
+        cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+    ): this;
+    off(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+    addListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+    addListener(event: "error", cb: (error: Error) => void): this;
+    addListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
+    addListener(event: "close" | "listening", cb: () => void): this;
+    addListener(event: "wsClientError", cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void): this;
+    addListener(event: string | symbol, listener: (...args: any[]) => void): this;
+
+    removeListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+    removeListener(event: "error", cb: (error: Error) => void): this;
+    removeListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
+    removeListener(event: "close" | "listening", cb: () => void): this;
+    removeListener(event: "wsClientError", cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void): this;
+    removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
+}
+export { type Server };
+
+export const WebSocketServer: typeof Server;
+export interface WebSocketServer extends Server {} // eslint-disable-line @typescript-eslint/no-empty-interface
+
+// WebSocket stream
+export function createWebSocketStream(websocket: WebSocket, options?: DuplexOptions): Duplex;
+
+export default WebSocket;
+export { WebSocket };

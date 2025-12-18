@@ -1,537 +1,445 @@
-/**
- * @internal
- */
-interface CollectionConstructor {
-    new (): Collection<unknown, unknown>;
-    new <Key, Value>(entries?: readonly (readonly [Key, Value])[] | null): Collection<Key, Value>;
-    new <Key, Value>(iterable: Iterable<readonly [Key, Value]>): Collection<Key, Value>;
-    readonly prototype: Collection<unknown, unknown>;
-    readonly [Symbol.species]: CollectionConstructor;
-}
-/**
- * Represents an immutable version of a collection
- */
-type ReadonlyCollection<Key, Value> = Omit<Collection<Key, Value>, 'clear' | 'delete' | 'ensure' | 'forEach' | 'get' | 'reverse' | 'set' | 'sort' | 'sweep'> & ReadonlyMap<Key, Value>;
-/**
- * Separate interface for the constructor so that emitted js does not have a constructor that overwrites itself
- *
- * @internal
- */
-interface Collection<Key, Value> extends Map<Key, Value> {
-    constructor: CollectionConstructor;
-}
-/**
- * A Map with additional utility methods. This is used throughout discord.js rather than Arrays for anything that has
- * an ID, for significantly improved performance and ease-of-use.
- *
- * @typeParam Key - The key type this collection holds
- * @typeParam Value - The value type this collection holds
- */
-declare class Collection<Key, Value> extends Map<Key, Value> {
-    /**
-     * Obtains the value of the given key if it exists, otherwise sets and returns the value provided by the default value generator.
-     *
-     * @param key - The key to get if it exists, or set otherwise
-     * @param defaultValueGenerator - A function that generates the default value
-     * @example
-     * ```ts
-     * collection.ensure(guildId, () => defaultGuildConfig);
-     * ```
-     */
-    ensure(key: Key, defaultValueGenerator: (key: Key, collection: this) => Value): Value;
-    /**
-     * Checks if all of the elements exist in the collection.
-     *
-     * @param keys - The keys of the elements to check for
-     * @returns `true` if all of the elements exist, `false` if at least one does not exist.
-     */
-    hasAll(...keys: Key[]): boolean;
-    /**
-     * Checks if any of the elements exist in the collection.
-     *
-     * @param keys - The keys of the elements to check for
-     * @returns `true` if any of the elements exist, `false` if none exist.
-     */
-    hasAny(...keys: Key[]): boolean;
-    /**
-     * Obtains the first value(s) in this collection.
-     *
-     * @param amount - Amount of values to obtain from the beginning
-     * @returns A single value if no amount is provided or an array of values, starting from the end if amount is negative
-     */
-    first(): Value | undefined;
-    first(amount: number): Value[];
-    /**
-     * Obtains the first key(s) in this collection.
-     *
-     * @param amount - Amount of keys to obtain from the beginning
-     * @returns A single key if no amount is provided or an array of keys, starting from the end if
-     * amount is negative
-     */
-    firstKey(): Key | undefined;
-    firstKey(amount: number): Key[];
-    /**
-     * Obtains the last value(s) in this collection.
-     *
-     * @param amount - Amount of values to obtain from the end
-     * @returns A single value if no amount is provided or an array of values, starting from the start if
-     * amount is negative
-     */
-    last(): Value | undefined;
-    last(amount: number): Value[];
-    /**
-     * Obtains the last key(s) in this collection.
-     *
-     * @param amount - Amount of keys to obtain from the end
-     * @returns A single key if no amount is provided or an array of keys, starting from the start if
-     * amount is negative
-     */
-    lastKey(): Key | undefined;
-    lastKey(amount: number): Key[];
-    /**
-     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
-     * Returns the item at a given index, allowing for positive and negative integers.
-     * Negative integers count back from the last item in the collection.
-     *
-     * @param index - The index of the element to obtain
-     */
-    at(index: number): Value | undefined;
-    /**
-     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
-     * Returns the key at a given index, allowing for positive and negative integers.
-     * Negative integers count back from the last item in the collection.
-     *
-     * @param index - The index of the key to obtain
-     */
-    keyAt(index: number): Key | undefined;
-    /**
-     * Obtains unique random value(s) from this collection.
-     *
-     * @param amount - Amount of values to obtain randomly
-     * @returns A single value if no amount is provided or an array of values
-     */
-    random(): Value | undefined;
-    random(amount: number): Value[];
-    /**
-     * Obtains unique random key(s) from this collection.
-     *
-     * @param amount - Amount of keys to obtain randomly
-     * @returns A single key if no amount is provided or an array
-     */
-    randomKey(): Key | undefined;
-    randomKey(amount: number): Key[];
-    /**
-     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse | Array.reverse()}
-     * but returns a Collection instead of an Array.
-     */
-    reverse(): this;
-    /**
-     * Searches for a single item where the given function returns a truthy value. This behaves like
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find | Array.find()}.
-     * All collections used in Discord.js are mapped using their `id` property, and if you want to find by id you
-     * should use the `get` method. See
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get | MDN} for details.
-     *
-     * @param fn - The function to test with (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.find(user => user.username === 'Bob');
-     * ```
-     */
-    find<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): NewValue | undefined;
-    find(fn: (value: Value, key: Key, collection: this) => unknown): Value | undefined;
-    find<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): NewValue | undefined;
-    find<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Value | undefined;
-    /**
-     * Searches for the key of a single item where the given function returns a truthy value. This behaves like
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex | Array.findIndex()},
-     * but returns the key rather than the positional index.
-     *
-     * @param fn - The function to test with (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.findKey(user => user.username === 'Bob');
-     * ```
-     */
-    findKey<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): NewKey | undefined;
-    findKey(fn: (value: Value, key: Key, collection: this) => unknown): Key | undefined;
-    findKey<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): NewKey | undefined;
-    findKey<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Key | undefined;
-    /**
-     * Searches for a last item where the given function returns a truthy value. This behaves like
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast | Array.findLast()}.
-     *
-     * @param fn - The function to test with (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     */
-    findLast<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): NewValue | undefined;
-    findLast(fn: (value: Value, key: Key, collection: this) => unknown): Value | undefined;
-    findLast<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): NewValue | undefined;
-    findLast<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Value | undefined;
-    /**
-     * Searches for the key of a last item where the given function returns a truthy value. This behaves like
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLastIndex | Array.findLastIndex()},
-     * but returns the key rather than the positional index.
-     *
-     * @param fn - The function to test with (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     */
-    findLastKey<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): NewKey | undefined;
-    findLastKey(fn: (value: Value, key: Key, collection: this) => unknown): Key | undefined;
-    findLastKey<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): NewKey | undefined;
-    findLastKey<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Key | undefined;
-    /**
-     * Removes items that satisfy the provided filter function.
-     *
-     * @param fn - Function used to test (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @returns The number of removed entries
-     */
-    sweep(fn: (value: Value, key: Key, collection: this) => unknown): number;
-    sweep<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): number;
-    /**
-     * Identical to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter | Array.filter()},
-     * but returns a Collection instead of an Array.
-     *
-     * @param fn - The function to test with (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.filter(user => user.username === 'Bob');
-     * ```
-     */
-    filter<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): Collection<NewKey, Value>;
-    filter<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): Collection<Key, NewValue>;
-    filter(fn: (value: Value, key: Key, collection: this) => unknown): Collection<Key, Value>;
-    filter<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): Collection<NewKey, Value>;
-    filter<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): Collection<Key, NewValue>;
-    filter<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Collection<Key, Value>;
-    /**
-     * Partitions the collection into two collections where the first collection
-     * contains the items that passed and the second contains the items that failed.
-     *
-     * @param fn - Function used to test (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * const [big, small] = collection.partition(guild => guild.memberCount > 250);
-     * ```
-     */
-    partition<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): [Collection<NewKey, Value>, Collection<Exclude<Key, NewKey>, Value>];
-    partition<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): [Collection<Key, NewValue>, Collection<Key, Exclude<Value, NewValue>>];
-    partition(fn: (value: Value, key: Key, collection: this) => unknown): [Collection<Key, Value>, Collection<Key, Value>];
-    partition<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): [Collection<NewKey, Value>, Collection<Exclude<Key, NewKey>, Value>];
-    partition<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): [Collection<Key, NewValue>, Collection<Key, Exclude<Value, NewValue>>];
-    partition<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): [Collection<Key, Value>, Collection<Key, Value>];
-    /**
-     * Maps each item into a Collection, then joins the results into a single Collection. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap | Array.flatMap()}.
-     *
-     * @param fn - Function that produces a new Collection
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.flatMap(guild => guild.members.cache);
-     * ```
-     */
-    flatMap<NewValue>(fn: (value: Value, key: Key, collection: this) => Collection<Key, NewValue>): Collection<Key, NewValue>;
-    flatMap<NewValue, This>(fn: (this: This, value: Value, key: Key, collection: this) => Collection<Key, NewValue>, thisArg: This): Collection<Key, NewValue>;
-    /**
-     * Maps each item to another value into an array. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map | Array.map()}.
-     *
-     * @param fn - Function that produces an element of the new array, taking three arguments
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.map(user => user.tag);
-     * ```
-     */
-    map<NewValue>(fn: (value: Value, key: Key, collection: this) => NewValue): NewValue[];
-    map<This, NewValue>(fn: (this: This, value: Value, key: Key, collection: this) => NewValue, thisArg: This): NewValue[];
-    /**
-     * Maps each item to another value into a collection. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map | Array.map()}.
-     *
-     * @param fn - Function that produces an element of the new collection, taking three arguments
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.mapValues(user => user.tag);
-     * ```
-     */
-    mapValues<NewValue>(fn: (value: Value, key: Key, collection: this) => NewValue): Collection<Key, NewValue>;
-    mapValues<This, NewValue>(fn: (this: This, value: Value, key: Key, collection: this) => NewValue, thisArg: This): Collection<Key, NewValue>;
-    /**
-     * Checks if there exists an item that passes a test. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some | Array.some()}.
-     *
-     * @param fn - Function used to test (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.some(user => user.discriminator === '0000');
-     * ```
-     */
-    some(fn: (value: Value, key: Key, collection: this) => unknown): boolean;
-    some<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): boolean;
-    /**
-     * Checks if all items passes a test. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every | Array.every()}.
-     *
-     * @param fn - Function used to test (should return a boolean)
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection.every(user => !user.bot);
-     * ```
-     */
-    every<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): this is Collection<NewKey, Value>;
-    every<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): this is Collection<Key, NewValue>;
-    every(fn: (value: Value, key: Key, collection: this) => unknown): boolean;
-    every<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): this is Collection<NewKey, Value>;
-    every<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): this is Collection<Key, NewValue>;
-    every<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): boolean;
-    /**
-     * Applies a function to produce a single value. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce | Array.reduce()}.
-     *
-     * @param fn - Function used to reduce, taking four arguments; `accumulator`, `currentValue`, `currentKey`,
-     * and `collection`
-     * @param initialValue - Starting value for the accumulator
-     * @example
-     * ```ts
-     * collection.reduce((acc, guild) => acc + guild.memberCount, 0);
-     * ```
-     */
-    reduce(fn: (accumulator: Value, value: Value, key: Key, collection: this) => Value, initialValue?: Value): Value;
-    reduce<InitialValue>(fn: (accumulator: InitialValue, value: Value, key: Key, collection: this) => InitialValue, initialValue: InitialValue): InitialValue;
-    /**
-     * Applies a function to produce a single value. Identical in behavior to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight | Array.reduceRight()}.
-     *
-     * @param fn - Function used to reduce, taking four arguments; `accumulator`, `value`, `key`, and `collection`
-     * @param initialValue - Starting value for the accumulator
-     */
-    reduceRight(fn: (accumulator: Value, value: Value, key: Key, collection: this) => Value, initialValue?: Value): Value;
-    reduceRight<InitialValue>(fn: (accumulator: InitialValue, value: Value, key: Key, collection: this) => InitialValue, initialValue: InitialValue): InitialValue;
-    /**
-     * Identical to
-     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach | Map.forEach()},
-     * but returns the collection instead of undefined.
-     *
-     * @param fn - Function to execute for each element
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection
-     *  .each(user => console.log(user.username))
-     *  .filter(user => user.bot)
-     *  .each(user => console.log(user.username));
-     * ```
-     */
-    each(fn: (value: Value, key: Key, collection: this) => void): this;
-    each<This>(fn: (this: This, value: Value, key: Key, collection: this) => void, thisArg: This): this;
-    /**
-     * Runs a function on the collection and returns the collection.
-     *
-     * @param fn - Function to execute
-     * @param thisArg - Value to use as `this` when executing the function
-     * @example
-     * ```ts
-     * collection
-     *  .tap(coll => console.log(coll.size))
-     *  .filter(user => user.bot)
-     *  .tap(coll => console.log(coll.size))
-     * ```
-     */
-    tap(fn: (collection: this) => void): this;
-    tap<This>(fn: (this: This, collection: this) => void, thisArg: This): this;
-    /**
-     * Creates an identical shallow copy of this collection.
-     *
-     * @example
-     * ```ts
-     * const newColl = someColl.clone();
-     * ```
-     */
-    clone(): Collection<Key, Value>;
-    /**
-     * Combines this collection with others into a new collection. None of the source collections are modified.
-     *
-     * @param collections - Collections to merge
-     * @example
-     * ```ts
-     * const newColl = someColl.concat(someOtherColl, anotherColl, ohBoyAColl);
-     * ```
-     */
-    concat(...collections: ReadonlyCollection<Key, Value>[]): Collection<Key, Value>;
-    /**
-     * Checks if this collection shares identical items with another.
-     * This is different to checking for equality using equal-signs, because
-     * the collections may be different objects, but contain the same data.
-     *
-     * @param collection - Collection to compare with
-     * @returns Whether the collections have identical contents
-     */
-    equals(collection: ReadonlyCollection<Key, Value>): boolean;
-    /**
-     * The sort method sorts the items of a collection in place and returns it.
-     * The sort is not necessarily stable in Node 10 or older.
-     * The default sort order is according to string Unicode code points.
-     *
-     * @param compareFunction - Specifies a function that defines the sort order.
-     * If omitted, the collection is sorted according to each character's Unicode code point value, according to the string conversion of each element.
-     * @example
-     * ```ts
-     * collection.sort((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
-     * ```
-     */
-    sort(compareFunction?: Comparator<Key, Value>): this;
-    /**
-     * The intersection method returns a new collection containing the items where the key is present in both collections.
-     *
-     * @param other - The other Collection to filter against
-     * @example
-     * ```ts
-     * const col1 = new Collection([['a', 1], ['b', 2]]);
-     * const col2 = new Collection([['a', 1], ['c', 3]]);
-     * const intersection = col1.intersection(col2);
-     * console.log(col1.intersection(col2));
-     * // => Collection { 'a' => 1 }
-     * ```
-     */
-    intersection(other: ReadonlyCollection<Key, any>): Collection<Key, Value>;
-    /**
-     * Returns a new collection containing the items where the key is present in either of the collections.
-     *
-     * @remarks
-     *
-     * If the collections have any items with the same key, the value from the first collection will be used.
-     * @param other - The other Collection to filter against
-     * @example
-     * ```ts
-     * const col1 = new Collection([['a', 1], ['b', 2]]);
-     * const col2 = new Collection([['a', 1], ['b', 3], ['c', 3]]);
-     * const union = col1.union(col2);
-     * console.log(union);
-     * // => Collection { 'a' => 1, 'b' => 2, 'c' => 3 }
-     * ```
-     */
-    union<OtherValue>(other: ReadonlyCollection<Key, OtherValue>): Collection<Key, OtherValue | Value>;
-    /**
-     * Returns a new collection containing the items where the key is present in this collection but not the other.
-     *
-     * @param other - The other Collection to filter against
-     * @example
-     * ```ts
-     * const col1 = new Collection([['a', 1], ['b', 2]]);
-     * const col2 = new Collection([['a', 1], ['c', 3]]);
-     * console.log(col1.difference(col2));
-     * // => Collection { 'b' => 2 }
-     * console.log(col2.difference(col1));
-     * // => Collection { 'c' => 3 }
-     * ```
-     */
-    difference(other: ReadonlyCollection<Key, any>): Collection<Key, Value>;
-    /**
-     * Returns a new collection containing only the items where the keys are present in either collection, but not both.
-     *
-     * @param other - The other Collection to filter against
-     * @example
-     * ```ts
-     * const col1 = new Collection([['a', 1], ['b', 2]]);
-     * const col2 = new Collection([['a', 1], ['c', 3]]);
-     * const symmetricDifference = col1.symmetricDifference(col2);
-     * console.log(col1.symmetricDifference(col2));
-     * // => Collection { 'b' => 2, 'c' => 3 }
-     * ```
-     */
-    symmetricDifference<OtherValue>(other: ReadonlyCollection<Key, OtherValue>): Collection<Key, OtherValue | Value>;
-    /**
-     * Merges two Collections together into a new Collection.
-     *
-     * @param other - The other Collection to merge with
-     * @param whenInSelf - Function getting the result if the entry only exists in this Collection
-     * @param whenInOther - Function getting the result if the entry only exists in the other Collection
-     * @param whenInBoth - Function getting the result if the entry exists in both Collections
-     * @example
-     * ```ts
-     * // Sums up the entries in two collections.
-     * coll.merge(
-     *  other,
-     *  x => ({ keep: true, value: x }),
-     *  y => ({ keep: true, value: y }),
-     *  (x, y) => ({ keep: true, value: x + y }),
-     * );
-     * ```
-     * @example
-     * ```ts
-     * // Intersects two collections in a left-biased manner.
-     * coll.merge(
-     *  other,
-     *  x => ({ keep: false }),
-     *  y => ({ keep: false }),
-     *  (x, _) => ({ keep: true, value: x }),
-     * );
-     * ```
-     */
-    merge<OtherValue, ResultValue>(other: ReadonlyCollection<Key, OtherValue>, whenInSelf: (value: Value, key: Key) => Keep<ResultValue>, whenInOther: (valueOther: OtherValue, key: Key) => Keep<ResultValue>, whenInBoth: (value: Value, valueOther: OtherValue, key: Key) => Keep<ResultValue>): Collection<Key, ResultValue>;
-    /**
-     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toReversed | Array.toReversed()}
-     * but returns a Collection instead of an Array.
-     */
-    toReversed(): Collection<Key, Value>;
-    /**
-     * The sorted method sorts the items of a collection and returns it.
-     * The sort is not necessarily stable in Node 10 or older.
-     * The default sort order is according to string Unicode code points.
-     *
-     * @param compareFunction - Specifies a function that defines the sort order.
-     * If omitted, the collection is sorted according to each character's Unicode code point value,
-     * according to the string conversion of each element.
-     * @example
-     * ```ts
-     * collection.sorted((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
-     * ```
-     */
-    toSorted(compareFunction?: Comparator<Key, Value>): Collection<Key, Value>;
-    toJSON(): [Key, Value][];
-    private static defaultSort;
-    /**
-     * Creates a Collection from a list of entries.
-     *
-     * @param entries - The list of entries
-     * @param combine - Function to combine an existing entry with a new one
-     * @example
-     * ```ts
-     * Collection.combineEntries([["a", 1], ["b", 2], ["a", 2]], (x, y) => x + y);
-     * // returns Collection { "a" => 3, "b" => 2 }
-     * ```
-     */
-    static combineEntries<Key, Value>(entries: Iterable<[Key, Value]>, combine: (firstValue: Value, secondValue: Value, key: Key) => Value): Collection<Key, Value>;
-}
-/**
- * @internal
- */
-type Keep<Value> = {
-    keep: false;
-} | {
-    keep: true;
-    value: Value;
-};
-/**
- * @internal
- */
-type Comparator<Key, Value> = (firstValue: Value, secondValue: Value, firstKey: Key, secondKey: Key) => number;
+/// <reference types="node" />
 
-/**
- * The {@link https://github.com/discordjs/discord.js/blob/main/packages/collection#readme | @discordjs/collection} version
- * that you are currently using.
- */
-declare const version: string;
+import { EventEmitter } from "events";
+import {
+    Agent,
+    ClientRequest,
+    ClientRequestArgs,
+    IncomingMessage,
+    OutgoingHttpHeaders,
+    Server as HTTPServer,
+} from "http";
+import { Server as HTTPSServer } from "https";
+import { createConnection } from "net";
+import { Duplex, DuplexOptions } from "stream";
+import { SecureContextOptions } from "tls";
+import { URL } from "url";
+import { ZlibOptions } from "zlib";
 
-export { Collection, type CollectionConstructor, type Comparator, type Keep, type ReadonlyCollection, version };
+// can not get all overload of BufferConstructor['from'], need to copy all it's first arguments here
+// https://github.com/microsoft/TypeScript/issues/32164
+type BufferLike =
+    | string
+    | Buffer
+    | DataView
+    | number
+    | ArrayBufferView
+    | Uint8Array
+    | ArrayBuffer
+    | SharedArrayBuffer
+    | Blob
+    | readonly any[]
+    | readonly number[]
+    | { valueOf(): ArrayBuffer }
+    | { valueOf(): SharedArrayBuffer }
+    | { valueOf(): Uint8Array }
+    | { valueOf(): readonly number[] }
+    | { valueOf(): string }
+    | { [Symbol.toPrimitive](hint: string): string };
+
+// WebSocket socket.
+declare class WebSocket extends EventEmitter {
+    /** The connection is not yet open. */
+    static readonly CONNECTING: 0;
+    /** The connection is open and ready to communicate. */
+    static readonly OPEN: 1;
+    /** The connection is in the process of closing. */
+    static readonly CLOSING: 2;
+    /** The connection is closed. */
+    static readonly CLOSED: 3;
+
+    binaryType: "nodebuffer" | "arraybuffer" | "fragments";
+    readonly bufferedAmount: number;
+    readonly extensions: string;
+    /** Indicates whether the websocket is paused */
+    readonly isPaused: boolean;
+    readonly protocol: string;
+    /** The current state of the connection */
+    readonly readyState:
+        | typeof WebSocket.CONNECTING
+        | typeof WebSocket.OPEN
+        | typeof WebSocket.CLOSING
+        | typeof WebSocket.CLOSED;
+    readonly url: string;
+
+    /** The connection is not yet open. */
+    readonly CONNECTING: 0;
+    /** The connection is open and ready to communicate. */
+    readonly OPEN: 1;
+    /** The connection is in the process of closing. */
+    readonly CLOSING: 2;
+    /** The connection is closed. */
+    readonly CLOSED: 3;
+
+    onopen: ((event: WebSocket.Event) => void) | null;
+    onerror: ((event: WebSocket.ErrorEvent) => void) | null;
+    onclose: ((event: WebSocket.CloseEvent) => void) | null;
+    onmessage: ((event: WebSocket.MessageEvent) => void) | null;
+
+    constructor(address: null);
+    constructor(address: string | URL, options?: WebSocket.ClientOptions | ClientRequestArgs);
+    constructor(
+        address: string | URL,
+        protocols?: string | string[],
+        options?: WebSocket.ClientOptions | ClientRequestArgs,
+    );
+
+    close(code?: number, data?: string | Buffer): void;
+    ping(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
+    pong(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
+    // https://github.com/websockets/ws/issues/2076#issuecomment-1250354722
+    send(data: BufferLike, cb?: (err?: Error) => void): void;
+    send(
+        data: BufferLike,
+        options: {
+            mask?: boolean | undefined;
+            binary?: boolean | undefined;
+            compress?: boolean | undefined;
+            fin?: boolean | undefined;
+        },
+        cb?: (err?: Error) => void,
+    ): void;
+    terminate(): void;
+
+    /**
+     * Pause the websocket causing it to stop emitting events. Some events can still be
+     * emitted after this is called, until all buffered data is consumed. This method
+     * is a noop if the ready state is `CONNECTING` or `CLOSED`.
+     */
+    pause(): void;
+    /**
+     * Make a paused socket resume emitting events. This method is a noop if the ready
+     * state is `CONNECTING` or `CLOSED`.
+     */
+    resume(): void;
+
+    // HTML5 WebSocket events
+    addEventListener<K extends keyof WebSocket.WebSocketEventMap>(
+        type: K,
+        listener:
+            | ((event: WebSocket.WebSocketEventMap[K]) => void)
+            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
+        options?: WebSocket.EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof WebSocket.WebSocketEventMap>(
+        type: K,
+        listener:
+            | ((event: WebSocket.WebSocketEventMap[K]) => void)
+            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
+    ): void;
+
+    // Events
+    on(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    on(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    on(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    on(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    on(event: "open", listener: (this: WebSocket) => void): this;
+    on(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    on(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    on(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    on(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    once(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    once(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    once(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    once(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    once(event: "open", listener: (this: WebSocket) => void): this;
+    once(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    once(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    once(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    once(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    off(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
+    off(event: "error", listener: (this: WebSocket, error: Error) => void): this;
+    off(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
+    off(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
+    off(event: "open", listener: (this: WebSocket) => void): this;
+    off(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
+    off(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
+    off(
+        event: "unexpected-response",
+        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    off(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
+
+    addListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
+    addListener(event: "error", listener: (error: Error) => void): this;
+    addListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
+    addListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
+    addListener(event: "open", listener: () => void): this;
+    addListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
+    addListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
+    addListener(
+        event: "unexpected-response",
+        listener: (request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    addListener(event: string | symbol, listener: (...args: any[]) => void): this;
+
+    removeListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
+    removeListener(event: "error", listener: (error: Error) => void): this;
+    removeListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
+    removeListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
+    removeListener(event: "open", listener: () => void): this;
+    removeListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
+    removeListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
+    removeListener(
+        event: "unexpected-response",
+        listener: (request: ClientRequest, response: IncomingMessage) => void,
+    ): this;
+    removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
+}
+
+declare const WebSocketAlias: typeof WebSocket;
+interface WebSocketAlias extends WebSocket {} // eslint-disable-line @typescript-eslint/no-empty-interface
+
+declare namespace WebSocket {
+    /**
+     * Data represents the raw message payload received over the WebSocket.
+     */
+    type RawData = Buffer | ArrayBuffer | Buffer[];
+
+    /**
+     * Data represents the message payload received over the WebSocket.
+     */
+    type Data = string | Buffer | ArrayBuffer | Buffer[];
+
+    /**
+     * CertMeta represents the accepted types for certificate & key data.
+     */
+    type CertMeta = string | string[] | Buffer | Buffer[];
+
+    /**
+     * VerifyClientCallbackSync is a synchronous callback used to inspect the
+     * incoming message. The return value (boolean) of the function determines
+     * whether or not to accept the handshake.
+     */
+    type VerifyClientCallbackSync<Request extends IncomingMessage = IncomingMessage> = (info: {
+        origin: string;
+        secure: boolean;
+        req: Request;
+    }) => boolean;
+
+    /**
+     * VerifyClientCallbackAsync is an asynchronous callback used to inspect the
+     * incoming message. The return value (boolean) of the function determines
+     * whether or not to accept the handshake.
+     */
+    type VerifyClientCallbackAsync<Request extends IncomingMessage = IncomingMessage> = (
+        info: { origin: string; secure: boolean; req: Request },
+        callback: (res: boolean, code?: number, message?: string, headers?: OutgoingHttpHeaders) => void,
+    ) => void;
+
+    /**
+     * FinishRequestCallback is a callback for last minute customization of the
+     * headers. If finishRequest is set, then it has the responsibility to call
+     * request.end() once it is done setting request headers.
+     */
+    type FinishRequestCallback = (request: ClientRequest, websocket: WebSocket) => void;
+
+    interface ClientOptions extends SecureContextOptions {
+        protocol?: string | undefined;
+        followRedirects?: boolean | undefined;
+        generateMask?(mask: Buffer): void;
+        handshakeTimeout?: number | undefined;
+        maxRedirects?: number | undefined;
+        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
+        localAddress?: string | undefined;
+        protocolVersion?: number | undefined;
+        headers?: { [key: string]: string } | undefined;
+        origin?: string | undefined;
+        agent?: Agent | undefined;
+        host?: string | undefined;
+        family?: number | undefined;
+        checkServerIdentity?(servername: string, cert: CertMeta): boolean;
+        rejectUnauthorized?: boolean | undefined;
+        allowSynchronousEvents?: boolean | undefined;
+        autoPong?: boolean | undefined;
+        maxPayload?: number | undefined;
+        skipUTF8Validation?: boolean | undefined;
+        createConnection?: typeof createConnection | undefined;
+        finishRequest?: FinishRequestCallback | undefined;
+    }
+
+    interface PerMessageDeflateOptions {
+        serverNoContextTakeover?: boolean | undefined;
+        clientNoContextTakeover?: boolean | undefined;
+        serverMaxWindowBits?: number | undefined;
+        clientMaxWindowBits?: number | undefined;
+        zlibDeflateOptions?: {
+            flush?: number | undefined;
+            finishFlush?: number | undefined;
+            chunkSize?: number | undefined;
+            windowBits?: number | undefined;
+            level?: number | undefined;
+            memLevel?: number | undefined;
+            strategy?: number | undefined;
+            dictionary?: Buffer | Buffer[] | DataView | undefined;
+            info?: boolean | undefined;
+        } | undefined;
+        zlibInflateOptions?: ZlibOptions | undefined;
+        threshold?: number | undefined;
+        concurrencyLimit?: number | undefined;
+    }
+
+    interface Event {
+        type: string;
+        target: WebSocket;
+    }
+
+    interface ErrorEvent {
+        error: any;
+        message: string;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface CloseEvent {
+        wasClean: boolean;
+        code: number;
+        reason: string;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface MessageEvent {
+        data: Data;
+        type: string;
+        target: WebSocket;
+    }
+
+    interface WebSocketEventMap {
+        open: Event;
+        error: ErrorEvent;
+        close: CloseEvent;
+        message: MessageEvent;
+    }
+
+    interface EventListenerOptions {
+        once?: boolean | undefined;
+    }
+
+    interface ServerOptions<
+        U extends typeof WebSocket.WebSocket = typeof WebSocket.WebSocket,
+        V extends typeof IncomingMessage = typeof IncomingMessage,
+    > {
+        host?: string | undefined;
+        port?: number | undefined;
+        backlog?: number | undefined;
+        server?: HTTPServer<V> | HTTPSServer<V> | undefined;
+        verifyClient?:
+            | VerifyClientCallbackAsync<InstanceType<V>>
+            | VerifyClientCallbackSync<InstanceType<V>>
+            | undefined;
+        handleProtocols?: (protocols: Set<string>, request: InstanceType<V>) => string | false;
+        path?: string | undefined;
+        noServer?: boolean | undefined;
+        allowSynchronousEvents?: boolean | undefined;
+        autoPong?: boolean | undefined;
+        clientTracking?: boolean | undefined;
+        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
+        maxPayload?: number | undefined;
+        skipUTF8Validation?: boolean | undefined;
+        WebSocket?: U | undefined;
+    }
+
+    interface AddressInfo {
+        address: string;
+        family: string;
+        port: number;
+    }
+
+    // WebSocket Server
+    class Server<
+        T extends typeof WebSocket.WebSocket = typeof WebSocket.WebSocket,
+        U extends typeof IncomingMessage = typeof IncomingMessage,
+    > extends EventEmitter {
+        options: ServerOptions<T, U>;
+        path: string;
+        clients: Set<InstanceType<T>>;
+
+        constructor(options?: ServerOptions<T, U>, callback?: () => void);
+
+        address(): AddressInfo | string | null;
+        close(cb?: (err?: Error) => void): void;
+        handleUpgrade(
+            request: InstanceType<U>,
+            socket: Duplex,
+            upgradeHead: Buffer,
+            callback: (client: InstanceType<T>, request: InstanceType<U>) => void,
+        ): void;
+        shouldHandle(request: InstanceType<U>): boolean | Promise<boolean>;
+
+        // Events
+        on(
+            event: "connection",
+            cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void,
+        ): this;
+        on(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+        on(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+        on(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+        on(
+            event: "wsClientError",
+            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+        ): this;
+        on(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+        once(
+            event: "connection",
+            cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void,
+        ): this;
+        once(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+        once(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+        once(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+        once(
+            event: "wsClientError",
+            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+        ): this;
+        once(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+        off(
+            event: "connection",
+            cb: (this: Server<T>, socket: InstanceType<T>, request: InstanceType<U>) => void,
+        ): this;
+        off(event: "error", cb: (this: Server<T>, error: Error) => void): this;
+        off(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
+        off(event: "close" | "listening", cb: (this: Server<T>) => void): this;
+        off(
+            event: "wsClientError",
+            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
+        ): this;
+        off(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+
+        addListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+        addListener(event: "error", cb: (error: Error) => void): this;
+        addListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
+        addListener(event: "close" | "listening", cb: () => void): this;
+        addListener(event: "wsClientError", cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void): this;
+        addListener(event: string | symbol, listener: (...args: any[]) => void): this;
+
+        removeListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
+        removeListener(event: "error", cb: (error: Error) => void): this;
+        removeListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
+        removeListener(event: "close" | "listening", cb: () => void): this;
+        removeListener(
+            event: "wsClientError",
+            cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void,
+        ): this;
+        removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
+    }
+
+    const WebSocketServer: typeof Server;
+    interface WebSocketServer extends Server {} // eslint-disable-line @typescript-eslint/no-empty-interface
+    const WebSocket: typeof WebSocketAlias;
+    interface WebSocket extends WebSocketAlias {} // eslint-disable-line @typescript-eslint/no-empty-interface
+
+    // WebSocket stream
+    function createWebSocketStream(websocket: WebSocket, options?: DuplexOptions): Duplex;
+}
+
+export = WebSocket;
