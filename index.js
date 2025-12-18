@@ -21,432 +21,547 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  Faces: () => Faces,
-  GuildNavigationMentions: () => GuildNavigationMentions,
-  HeadingLevel: () => HeadingLevel,
-  TimestampStyles: () => TimestampStyles,
-  applicationDirectory: () => applicationDirectory,
-  blockQuote: () => blockQuote,
-  bold: () => bold,
-  channelLink: () => channelLink,
-  channelMention: () => channelMention,
-  chatInputApplicationCommandMention: () => chatInputApplicationCommandMention,
-  codeBlock: () => codeBlock,
-  escapeBold: () => escapeBold,
-  escapeBulletedList: () => escapeBulletedList,
-  escapeCodeBlock: () => escapeCodeBlock,
-  escapeEscape: () => escapeEscape,
-  escapeHeading: () => escapeHeading,
-  escapeInlineCode: () => escapeInlineCode,
-  escapeItalic: () => escapeItalic,
-  escapeMarkdown: () => escapeMarkdown,
-  escapeMaskedLink: () => escapeMaskedLink,
-  escapeNumberedList: () => escapeNumberedList,
-  escapeSpoiler: () => escapeSpoiler,
-  escapeStrikethrough: () => escapeStrikethrough,
-  escapeUnderline: () => escapeUnderline,
-  formatEmoji: () => formatEmoji,
-  heading: () => heading,
-  hideLinkEmbed: () => hideLinkEmbed,
-  hyperlink: () => hyperlink,
-  inlineCode: () => inlineCode,
-  italic: () => italic,
-  messageLink: () => messageLink,
-  orderedList: () => orderedList,
-  quote: () => quote,
-  roleMention: () => roleMention,
-  spoiler: () => spoiler,
-  strikethrough: () => strikethrough,
-  subtext: () => subtext,
-  time: () => time,
-  underline: () => underline,
-  underscore: () => underscore,
-  unorderedList: () => unorderedList,
-  userMention: () => userMention,
+  Collection: () => Collection,
   version: () => version
 });
 module.exports = __toCommonJS(src_exports);
 
-// src/escapers.ts
-function escapeMarkdown(text, options = {}) {
-  const {
-    codeBlock: codeBlock2 = true,
-    inlineCode: inlineCode2 = true,
-    bold: bold2 = true,
-    italic: italic2 = true,
-    underline: underline2 = true,
-    strikethrough: strikethrough2 = true,
-    spoiler: spoiler2 = true,
-    codeBlockContent = true,
-    inlineCodeContent = true,
-    escape = true,
-    heading: heading2 = false,
-    bulletedList = false,
-    numberedList = false,
-    maskedLink = false
-  } = options;
-  if (!codeBlockContent) {
-    return text.split("```").map((subString, index, array) => {
-      if (index % 2 && index !== array.length - 1) return subString;
-      return escapeMarkdown(subString, {
-        inlineCode: inlineCode2,
-        bold: bold2,
-        italic: italic2,
-        underline: underline2,
-        strikethrough: strikethrough2,
-        spoiler: spoiler2,
-        inlineCodeContent,
-        escape,
-        heading: heading2,
-        bulletedList,
-        numberedList,
-        maskedLink
-      });
-    }).join(codeBlock2 ? "\\`\\`\\`" : "```");
+// src/collection.ts
+var Collection = class _Collection extends Map {
+  static {
+    __name(this, "Collection");
   }
-  if (!inlineCodeContent) {
-    return text.split(/(?<=^|[^`])`(?=[^`]|$)/g).map((subString, index, array) => {
-      if (index % 2 && index !== array.length - 1) return subString;
-      return escapeMarkdown(subString, {
-        codeBlock: codeBlock2,
-        bold: bold2,
-        italic: italic2,
-        underline: underline2,
-        strikethrough: strikethrough2,
-        spoiler: spoiler2,
-        escape,
-        heading: heading2,
-        bulletedList,
-        numberedList,
-        maskedLink
-      });
-    }).join(inlineCode2 ? "\\`" : "`");
+  /**
+   * Obtains the value of the given key if it exists, otherwise sets and returns the value provided by the default value generator.
+   *
+   * @param key - The key to get if it exists, or set otherwise
+   * @param defaultValueGenerator - A function that generates the default value
+   * @example
+   * ```ts
+   * collection.ensure(guildId, () => defaultGuildConfig);
+   * ```
+   */
+  ensure(key, defaultValueGenerator) {
+    if (this.has(key)) return this.get(key);
+    if (typeof defaultValueGenerator !== "function") throw new TypeError(`${defaultValueGenerator} is not a function`);
+    const defaultValue = defaultValueGenerator(key, this);
+    this.set(key, defaultValue);
+    return defaultValue;
   }
-  let res = text;
-  if (escape) res = escapeEscape(res);
-  if (inlineCode2) res = escapeInlineCode(res);
-  if (codeBlock2) res = escapeCodeBlock(res);
-  if (italic2) res = escapeItalic(res);
-  if (bold2) res = escapeBold(res);
-  if (underline2) res = escapeUnderline(res);
-  if (strikethrough2) res = escapeStrikethrough(res);
-  if (spoiler2) res = escapeSpoiler(res);
-  if (heading2) res = escapeHeading(res);
-  if (bulletedList) res = escapeBulletedList(res);
-  if (numberedList) res = escapeNumberedList(res);
-  if (maskedLink) res = escapeMaskedLink(res);
-  return res;
-}
-__name(escapeMarkdown, "escapeMarkdown");
-function escapeCodeBlock(text) {
-  return text.replaceAll("```", "\\`\\`\\`");
-}
-__name(escapeCodeBlock, "escapeCodeBlock");
-function escapeInlineCode(text) {
-  return text.replaceAll(/(?<=^|[^`])``?(?=[^`]|$)/g, (match) => match.length === 2 ? "\\`\\`" : "\\`");
-}
-__name(escapeInlineCode, "escapeInlineCode");
-function escapeItalic(text) {
-  let idx = 0;
-  const newText = text.replaceAll(/(?<=^|[^*])\*([^*]|\*\*|$)/g, (_, match) => {
-    if (match === "**") return ++idx % 2 ? `\\*${match}` : `${match}\\*`;
-    return `\\*${match}`;
-  });
-  idx = 0;
-  return newText.replaceAll(/(?<=^|[^_])(?<!<a?:.+|https?:\/\/\S+)_(?!:\d+>)([^_]|__|$)/g, (_, match) => {
-    if (match === "__") return ++idx % 2 ? `\\_${match}` : `${match}\\_`;
-    return `\\_${match}`;
-  });
-}
-__name(escapeItalic, "escapeItalic");
-function escapeBold(text) {
-  let idx = 0;
-  return text.replaceAll(/\*\*(\*)?/g, (_, match) => {
-    if (match) return ++idx % 2 ? `${match}\\*\\*` : `\\*\\*${match}`;
-    return "\\*\\*";
-  });
-}
-__name(escapeBold, "escapeBold");
-function escapeUnderline(text) {
-  let idx = 0;
-  return text.replaceAll(/(?<!<a?:.+|https?:\/\/\S+)__(_)?(?!:\d+>)/g, (_, match) => {
-    if (match) return ++idx % 2 ? `${match}\\_\\_` : `\\_\\_${match}`;
-    return "\\_\\_";
-  });
-}
-__name(escapeUnderline, "escapeUnderline");
-function escapeStrikethrough(text) {
-  return text.replaceAll("~~", "\\~\\~");
-}
-__name(escapeStrikethrough, "escapeStrikethrough");
-function escapeSpoiler(text) {
-  return text.replaceAll("||", "\\|\\|");
-}
-__name(escapeSpoiler, "escapeSpoiler");
-function escapeEscape(text) {
-  return text.replaceAll("\\", "\\\\");
-}
-__name(escapeEscape, "escapeEscape");
-function escapeHeading(text) {
-  return text.replaceAll(/^( {0,2})([*-] )?( *)(#{1,3} )/gm, "$1$2$3\\$4");
-}
-__name(escapeHeading, "escapeHeading");
-function escapeBulletedList(text) {
-  return text.replaceAll(/^( *)([*-])( +)/gm, "$1\\$2$3");
-}
-__name(escapeBulletedList, "escapeBulletedList");
-function escapeNumberedList(text) {
-  return text.replaceAll(/^( *\d+)\./gm, "$1\\.");
-}
-__name(escapeNumberedList, "escapeNumberedList");
-function escapeMaskedLink(text) {
-  return text.replaceAll(/\[.+]\(.+\)/gm, "\\$&");
-}
-__name(escapeMaskedLink, "escapeMaskedLink");
-
-// src/formatters.ts
-function codeBlock(language, content) {
-  return content === void 0 ? `\`\`\`
-${language}
-\`\`\`` : `\`\`\`${language}
-${content}
-\`\`\``;
-}
-__name(codeBlock, "codeBlock");
-function inlineCode(content) {
-  return `\`${content}\``;
-}
-__name(inlineCode, "inlineCode");
-function italic(content) {
-  return `_${content}_`;
-}
-__name(italic, "italic");
-function bold(content) {
-  return `**${content}**`;
-}
-__name(bold, "bold");
-function underscore(content) {
-  return underline(content);
-}
-__name(underscore, "underscore");
-function underline(content) {
-  return `__${content}__`;
-}
-__name(underline, "underline");
-function strikethrough(content) {
-  return `~~${content}~~`;
-}
-__name(strikethrough, "strikethrough");
-function quote(content) {
-  return `> ${content}`;
-}
-__name(quote, "quote");
-function blockQuote(content) {
-  return `>>> ${content}`;
-}
-__name(blockQuote, "blockQuote");
-function hideLinkEmbed(url) {
-  return `<${url}>`;
-}
-__name(hideLinkEmbed, "hideLinkEmbed");
-function hyperlink(content, url, title) {
-  return title ? `[${content}](${url} "${title}")` : `[${content}](${url})`;
-}
-__name(hyperlink, "hyperlink");
-function spoiler(content) {
-  return `||${content}||`;
-}
-__name(spoiler, "spoiler");
-function userMention(userId) {
-  return `<@${userId}>`;
-}
-__name(userMention, "userMention");
-function channelMention(channelId) {
-  return `<#${channelId}>`;
-}
-__name(channelMention, "channelMention");
-function roleMention(roleId) {
-  return `<@&${roleId}>`;
-}
-__name(roleMention, "roleMention");
-function chatInputApplicationCommandMention(commandName, subcommandGroupName, subcommandName, commandId) {
-  if (commandId !== void 0) {
-    return `</${commandName} ${subcommandGroupName} ${subcommandName}:${commandId}>`;
+  /**
+   * Checks if all of the elements exist in the collection.
+   *
+   * @param keys - The keys of the elements to check for
+   * @returns `true` if all of the elements exist, `false` if at least one does not exist.
+   */
+  hasAll(...keys) {
+    return keys.every((key) => super.has(key));
   }
-  if (subcommandName !== void 0) {
-    return `</${commandName} ${subcommandGroupName}:${subcommandName}>`;
+  /**
+   * Checks if any of the elements exist in the collection.
+   *
+   * @param keys - The keys of the elements to check for
+   * @returns `true` if any of the elements exist, `false` if none exist.
+   */
+  hasAny(...keys) {
+    return keys.some((key) => super.has(key));
   }
-  return `</${commandName}:${subcommandGroupName}>`;
-}
-__name(chatInputApplicationCommandMention, "chatInputApplicationCommandMention");
-function formatEmoji(emojiIdOrOptions, animated) {
-  const options = typeof emojiIdOrOptions === "string" ? {
-    id: emojiIdOrOptions,
-    animated: animated ?? false
-  } : emojiIdOrOptions;
-  const { id, animated: isAnimated, name: emojiName } = options;
-  return `<${isAnimated ? "a" : ""}:${emojiName ?? "_"}:${id}>`;
-}
-__name(formatEmoji, "formatEmoji");
-function channelLink(channelId, guildId) {
-  return `https://discord.com/channels/${guildId ?? "@me"}/${channelId}`;
-}
-__name(channelLink, "channelLink");
-function messageLink(channelId, messageId, guildId) {
-  return `${guildId === void 0 ? channelLink(channelId) : channelLink(channelId, guildId)}/${messageId}`;
-}
-__name(messageLink, "messageLink");
-var HeadingLevel = /* @__PURE__ */ ((HeadingLevel2) => {
-  HeadingLevel2[HeadingLevel2["One"] = 1] = "One";
-  HeadingLevel2[HeadingLevel2["Two"] = 2] = "Two";
-  HeadingLevel2[HeadingLevel2["Three"] = 3] = "Three";
-  return HeadingLevel2;
-})(HeadingLevel || {});
-function heading(content, level) {
-  switch (level) {
-    case 3 /* Three */:
-      return `### ${content}`;
-    case 2 /* Two */:
-      return `## ${content}`;
-    default:
-      return `# ${content}`;
+  first(amount) {
+    if (amount === void 0) return this.values().next().value;
+    if (amount < 0) return this.last(amount * -1);
+    amount = Math.min(this.size, amount);
+    const iter = this.values();
+    return Array.from({ length: amount }, () => iter.next().value);
   }
-}
-__name(heading, "heading");
-function listCallback(element, startNumber, depth = 0) {
-  if (Array.isArray(element)) {
-    return element.map((element2) => listCallback(element2, startNumber, depth + 1)).join("\n");
+  firstKey(amount) {
+    if (amount === void 0) return this.keys().next().value;
+    if (amount < 0) return this.lastKey(amount * -1);
+    amount = Math.min(this.size, amount);
+    const iter = this.keys();
+    return Array.from({ length: amount }, () => iter.next().value);
   }
-  return `${"  ".repeat(depth - 1)}${startNumber ? `${startNumber}.` : "-"} ${element}`;
-}
-__name(listCallback, "listCallback");
-function orderedList(list, startNumber = 1) {
-  return listCallback(list, Math.max(startNumber, 1));
-}
-__name(orderedList, "orderedList");
-function unorderedList(list) {
-  return listCallback(list);
-}
-__name(unorderedList, "unorderedList");
-function subtext(content) {
-  return `-# ${content}`;
-}
-__name(subtext, "subtext");
-function time(timeOrSeconds, style) {
-  if (typeof timeOrSeconds !== "number") {
-    timeOrSeconds = Math.floor((timeOrSeconds?.getTime() ?? Date.now()) / 1e3);
+  last(amount) {
+    const arr = [...this.values()];
+    if (amount === void 0) return arr[arr.length - 1];
+    if (amount < 0) return this.first(amount * -1);
+    if (!amount) return [];
+    return arr.slice(-amount);
   }
-  return typeof style === "string" ? `<t:${timeOrSeconds}:${style}>` : `<t:${timeOrSeconds}>`;
-}
-__name(time, "time");
-function applicationDirectory(applicationId, skuId) {
-  const url = `https://discord.com/application-directory/${applicationId}/store`;
-  return skuId ? `${url}/${skuId}` : url;
-}
-__name(applicationDirectory, "applicationDirectory");
-var TimestampStyles = {
+  lastKey(amount) {
+    const arr = [...this.keys()];
+    if (amount === void 0) return arr[arr.length - 1];
+    if (amount < 0) return this.firstKey(amount * -1);
+    if (!amount) return [];
+    return arr.slice(-amount);
+  }
   /**
-   * Short time format, consisting of hours and minutes.
+   * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
+   * Returns the item at a given index, allowing for positive and negative integers.
+   * Negative integers count back from the last item in the collection.
    *
-   * @example `16:20`
+   * @param index - The index of the element to obtain
    */
-  ShortTime: "t",
+  at(index) {
+    index = Math.floor(index);
+    const arr = [...this.values()];
+    return arr.at(index);
+  }
   /**
-   * Long time format, consisting of hours, minutes, and seconds.
+   * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
+   * Returns the key at a given index, allowing for positive and negative integers.
+   * Negative integers count back from the last item in the collection.
    *
-   * @example `16:20:30`
+   * @param index - The index of the key to obtain
    */
-  LongTime: "T",
+  keyAt(index) {
+    index = Math.floor(index);
+    const arr = [...this.keys()];
+    return arr.at(index);
+  }
+  random(amount) {
+    const arr = [...this.values()];
+    if (amount === void 0) return arr[Math.floor(Math.random() * arr.length)];
+    if (!arr.length || !amount) return [];
+    return Array.from(
+      { length: Math.min(amount, arr.length) },
+      () => arr.splice(Math.floor(Math.random() * arr.length), 1)[0]
+    );
+  }
+  randomKey(amount) {
+    const arr = [...this.keys()];
+    if (amount === void 0) return arr[Math.floor(Math.random() * arr.length)];
+    if (!arr.length || !amount) return [];
+    return Array.from(
+      { length: Math.min(amount, arr.length) },
+      () => arr.splice(Math.floor(Math.random() * arr.length), 1)[0]
+    );
+  }
   /**
-   * Short date format, consisting of day, month, and year.
-   *
-   * @example `20/04/2021`
+   * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse | Array.reverse()}
+   * but returns a Collection instead of an Array.
    */
-  ShortDate: "d",
+  reverse() {
+    const entries = [...this.entries()].reverse();
+    this.clear();
+    for (const [key, value] of entries) this.set(key, value);
+    return this;
+  }
+  find(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) return val;
+    }
+    return void 0;
+  }
+  findKey(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) return key;
+    }
+    return void 0;
+  }
+  findLast(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const entries = [...this.entries()];
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const val = entries[index][1];
+      const key = entries[index][0];
+      if (fn(val, key, this)) return val;
+    }
+    return void 0;
+  }
+  findLastKey(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const entries = [...this.entries()];
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const key = entries[index][0];
+      const val = entries[index][1];
+      if (fn(val, key, this)) return key;
+    }
+    return void 0;
+  }
+  sweep(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const previousSize = this.size;
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) this.delete(key);
+    }
+    return previousSize - this.size;
+  }
+  filter(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const results = new this.constructor[Symbol.species]();
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) results.set(key, val);
+    }
+    return results;
+  }
+  partition(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const results = [
+      new this.constructor[Symbol.species](),
+      new this.constructor[Symbol.species]()
+    ];
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) {
+        results[0].set(key, val);
+      } else {
+        results[1].set(key, val);
+      }
+    }
+    return results;
+  }
+  flatMap(fn, thisArg) {
+    const collections = this.map(fn, thisArg);
+    return new this.constructor[Symbol.species]().concat(...collections);
+  }
+  map(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const iter = this.entries();
+    return Array.from({ length: this.size }, () => {
+      const [key, value] = iter.next().value;
+      return fn(value, key, this);
+    });
+  }
+  mapValues(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    const coll = new this.constructor[Symbol.species]();
+    for (const [key, val] of this) coll.set(key, fn(val, key, this));
+    return coll;
+  }
+  some(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    for (const [key, val] of this) {
+      if (fn(val, key, this)) return true;
+    }
+    return false;
+  }
+  every(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    for (const [key, val] of this) {
+      if (!fn(val, key, this)) return false;
+    }
+    return true;
+  }
+  reduce(fn, initialValue) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    let accumulator;
+    const iterator = this.entries();
+    if (initialValue === void 0) {
+      if (this.size === 0) throw new TypeError("Reduce of empty collection with no initial value");
+      accumulator = iterator.next().value[1];
+    } else {
+      accumulator = initialValue;
+    }
+    for (const [key, value] of iterator) {
+      accumulator = fn(accumulator, value, key, this);
+    }
+    return accumulator;
+  }
+  reduceRight(fn, initialValue) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    const entries = [...this.entries()];
+    let accumulator;
+    let index;
+    if (initialValue === void 0) {
+      if (entries.length === 0) throw new TypeError("Reduce of empty collection with no initial value");
+      accumulator = entries[entries.length - 1][1];
+      index = entries.length - 1;
+    } else {
+      accumulator = initialValue;
+      index = entries.length;
+    }
+    while (--index >= 0) {
+      const key = entries[index][0];
+      const val = entries[index][1];
+      accumulator = fn(accumulator, val, key, this);
+    }
+    return accumulator;
+  }
+  each(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    for (const [key, value] of this) {
+      fn(value, key, this);
+    }
+    return this;
+  }
+  tap(fn, thisArg) {
+    if (typeof fn !== "function") throw new TypeError(`${fn} is not a function`);
+    if (thisArg !== void 0) fn = fn.bind(thisArg);
+    fn(this);
+    return this;
+  }
   /**
-   * Long date format, consisting of day, month, and year.
+   * Creates an identical shallow copy of this collection.
    *
-   * @example `20 April 2021`
+   * @example
+   * ```ts
+   * const newColl = someColl.clone();
+   * ```
    */
-  LongDate: "D",
+  clone() {
+    return new this.constructor[Symbol.species](this);
+  }
   /**
-   * Short date-time format, consisting of short date and short time formats.
+   * Combines this collection with others into a new collection. None of the source collections are modified.
    *
-   * @example `20 April 2021 16:20`
+   * @param collections - Collections to merge
+   * @example
+   * ```ts
+   * const newColl = someColl.concat(someOtherColl, anotherColl, ohBoyAColl);
+   * ```
    */
-  ShortDateTime: "f",
+  concat(...collections) {
+    const newColl = this.clone();
+    for (const coll of collections) {
+      for (const [key, val] of coll) newColl.set(key, val);
+    }
+    return newColl;
+  }
   /**
-   * Long date-time format, consisting of long date and short time formats.
+   * Checks if this collection shares identical items with another.
+   * This is different to checking for equality using equal-signs, because
+   * the collections may be different objects, but contain the same data.
    *
-   * @example `Tuesday, 20 April 2021 16:20`
+   * @param collection - Collection to compare with
+   * @returns Whether the collections have identical contents
    */
-  LongDateTime: "F",
+  equals(collection) {
+    if (!collection) return false;
+    if (this === collection) return true;
+    if (this.size !== collection.size) return false;
+    for (const [key, value] of this) {
+      if (!collection.has(key) || value !== collection.get(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
   /**
-   * Relative time format, consisting of a relative duration format.
+   * The sort method sorts the items of a collection in place and returns it.
+   * The sort is not necessarily stable in Node 10 or older.
+   * The default sort order is according to string Unicode code points.
    *
-   * @example `2 months ago`
+   * @param compareFunction - Specifies a function that defines the sort order.
+   * If omitted, the collection is sorted according to each character's Unicode code point value, according to the string conversion of each element.
+   * @example
+   * ```ts
+   * collection.sort((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
+   * ```
    */
-  RelativeTime: "R"
+  sort(compareFunction = _Collection.defaultSort) {
+    const entries = [...this.entries()];
+    entries.sort((a, b) => compareFunction(a[1], b[1], a[0], b[0]));
+    super.clear();
+    for (const [key, value] of entries) {
+      super.set(key, value);
+    }
+    return this;
+  }
+  /**
+   * The intersection method returns a new collection containing the items where the key is present in both collections.
+   *
+   * @param other - The other Collection to filter against
+   * @example
+   * ```ts
+   * const col1 = new Collection([['a', 1], ['b', 2]]);
+   * const col2 = new Collection([['a', 1], ['c', 3]]);
+   * const intersection = col1.intersection(col2);
+   * console.log(col1.intersection(col2));
+   * // => Collection { 'a' => 1 }
+   * ```
+   */
+  intersection(other) {
+    const coll = new this.constructor[Symbol.species]();
+    for (const [key, value] of this) {
+      if (other.has(key)) coll.set(key, value);
+    }
+    return coll;
+  }
+  /**
+   * Returns a new collection containing the items where the key is present in either of the collections.
+   *
+   * @remarks
+   *
+   * If the collections have any items with the same key, the value from the first collection will be used.
+   * @param other - The other Collection to filter against
+   * @example
+   * ```ts
+   * const col1 = new Collection([['a', 1], ['b', 2]]);
+   * const col2 = new Collection([['a', 1], ['b', 3], ['c', 3]]);
+   * const union = col1.union(col2);
+   * console.log(union);
+   * // => Collection { 'a' => 1, 'b' => 2, 'c' => 3 }
+   * ```
+   */
+  union(other) {
+    const coll = new this.constructor[Symbol.species](this);
+    for (const [key, value] of other) {
+      if (!coll.has(key)) coll.set(key, value);
+    }
+    return coll;
+  }
+  /**
+   * Returns a new collection containing the items where the key is present in this collection but not the other.
+   *
+   * @param other - The other Collection to filter against
+   * @example
+   * ```ts
+   * const col1 = new Collection([['a', 1], ['b', 2]]);
+   * const col2 = new Collection([['a', 1], ['c', 3]]);
+   * console.log(col1.difference(col2));
+   * // => Collection { 'b' => 2 }
+   * console.log(col2.difference(col1));
+   * // => Collection { 'c' => 3 }
+   * ```
+   */
+  difference(other) {
+    const coll = new this.constructor[Symbol.species]();
+    for (const [key, value] of this) {
+      if (!other.has(key)) coll.set(key, value);
+    }
+    return coll;
+  }
+  /**
+   * Returns a new collection containing only the items where the keys are present in either collection, but not both.
+   *
+   * @param other - The other Collection to filter against
+   * @example
+   * ```ts
+   * const col1 = new Collection([['a', 1], ['b', 2]]);
+   * const col2 = new Collection([['a', 1], ['c', 3]]);
+   * const symmetricDifference = col1.symmetricDifference(col2);
+   * console.log(col1.symmetricDifference(col2));
+   * // => Collection { 'b' => 2, 'c' => 3 }
+   * ```
+   */
+  symmetricDifference(other) {
+    const coll = new this.constructor[Symbol.species]();
+    for (const [key, value] of this) {
+      if (!other.has(key)) coll.set(key, value);
+    }
+    for (const [key, value] of other) {
+      if (!this.has(key)) coll.set(key, value);
+    }
+    return coll;
+  }
+  /**
+   * Merges two Collections together into a new Collection.
+   *
+   * @param other - The other Collection to merge with
+   * @param whenInSelf - Function getting the result if the entry only exists in this Collection
+   * @param whenInOther - Function getting the result if the entry only exists in the other Collection
+   * @param whenInBoth - Function getting the result if the entry exists in both Collections
+   * @example
+   * ```ts
+   * // Sums up the entries in two collections.
+   * coll.merge(
+   *  other,
+   *  x => ({ keep: true, value: x }),
+   *  y => ({ keep: true, value: y }),
+   *  (x, y) => ({ keep: true, value: x + y }),
+   * );
+   * ```
+   * @example
+   * ```ts
+   * // Intersects two collections in a left-biased manner.
+   * coll.merge(
+   *  other,
+   *  x => ({ keep: false }),
+   *  y => ({ keep: false }),
+   *  (x, _) => ({ keep: true, value: x }),
+   * );
+   * ```
+   */
+  merge(other, whenInSelf, whenInOther, whenInBoth) {
+    const coll = new this.constructor[Symbol.species]();
+    const keys = /* @__PURE__ */ new Set([...this.keys(), ...other.keys()]);
+    for (const key of keys) {
+      const hasInSelf = this.has(key);
+      const hasInOther = other.has(key);
+      if (hasInSelf && hasInOther) {
+        const result = whenInBoth(this.get(key), other.get(key), key);
+        if (result.keep) coll.set(key, result.value);
+      } else if (hasInSelf) {
+        const result = whenInSelf(this.get(key), key);
+        if (result.keep) coll.set(key, result.value);
+      } else if (hasInOther) {
+        const result = whenInOther(other.get(key), key);
+        if (result.keep) coll.set(key, result.value);
+      }
+    }
+    return coll;
+  }
+  /**
+   * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toReversed | Array.toReversed()}
+   * but returns a Collection instead of an Array.
+   */
+  toReversed() {
+    return new this.constructor[Symbol.species](this).reverse();
+  }
+  /**
+   * The sorted method sorts the items of a collection and returns it.
+   * The sort is not necessarily stable in Node 10 or older.
+   * The default sort order is according to string Unicode code points.
+   *
+   * @param compareFunction - Specifies a function that defines the sort order.
+   * If omitted, the collection is sorted according to each character's Unicode code point value,
+   * according to the string conversion of each element.
+   * @example
+   * ```ts
+   * collection.sorted((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
+   * ```
+   */
+  toSorted(compareFunction = _Collection.defaultSort) {
+    return new this.constructor[Symbol.species](this).sort((av, bv, ak, bk) => compareFunction(av, bv, ak, bk));
+  }
+  toJSON() {
+    return [...this.entries()];
+  }
+  static defaultSort(firstValue, secondValue) {
+    return Number(firstValue > secondValue) || Number(firstValue === secondValue) - 1;
+  }
+  /**
+   * Creates a Collection from a list of entries.
+   *
+   * @param entries - The list of entries
+   * @param combine - Function to combine an existing entry with a new one
+   * @example
+   * ```ts
+   * Collection.combineEntries([["a", 1], ["b", 2], ["a", 2]], (x, y) => x + y);
+   * // returns Collection { "a" => 3, "b" => 2 }
+   * ```
+   */
+  static combineEntries(entries, combine) {
+    const coll = new _Collection();
+    for (const [key, value] of entries) {
+      if (coll.has(key)) {
+        coll.set(key, combine(coll.get(key), value, key));
+      } else {
+        coll.set(key, value);
+      }
+    }
+    return coll;
+  }
 };
-var Faces = /* @__PURE__ */ ((Faces2) => {
-  Faces2["Shrug"] = "\xAF\\_(\u30C4)_/\xAF";
-  Faces2["Tableflip"] = "(\u256F\xB0\u25A1\xB0)\u256F\uFE35 \u253B\u2501\u253B";
-  Faces2["Unflip"] = "\u252C\u2500\u252C\u30CE( \xBA _ \xBA\u30CE)";
-  return Faces2;
-})(Faces || {});
-var GuildNavigationMentions = /* @__PURE__ */ ((GuildNavigationMentions2) => {
-  GuildNavigationMentions2["Browse"] = "<id:browse>";
-  GuildNavigationMentions2["Customize"] = "<id:customize>";
-  GuildNavigationMentions2["Guide"] = "<id:guide>";
-  return GuildNavigationMentions2;
-})(GuildNavigationMentions || {});
 
 // src/index.ts
-var version = "0.6.1";
+var version = "2.1.1";
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  Faces,
-  GuildNavigationMentions,
-  HeadingLevel,
-  TimestampStyles,
-  applicationDirectory,
-  blockQuote,
-  bold,
-  channelLink,
-  channelMention,
-  chatInputApplicationCommandMention,
-  codeBlock,
-  escapeBold,
-  escapeBulletedList,
-  escapeCodeBlock,
-  escapeEscape,
-  escapeHeading,
-  escapeInlineCode,
-  escapeItalic,
-  escapeMarkdown,
-  escapeMaskedLink,
-  escapeNumberedList,
-  escapeSpoiler,
-  escapeStrikethrough,
-  escapeUnderline,
-  formatEmoji,
-  heading,
-  hideLinkEmbed,
-  hyperlink,
-  inlineCode,
-  italic,
-  messageLink,
-  orderedList,
-  quote,
-  roleMention,
-  spoiler,
-  strikethrough,
-  subtext,
-  time,
-  underline,
-  underscore,
-  unorderedList,
-  userMention,
+  Collection,
   version
 });
 //# sourceMappingURL=index.js.map

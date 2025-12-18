@@ -1,673 +1,537 @@
-import { URL } from 'node:url';
-import { Snowflake } from 'discord-api-types/globals';
-
 /**
- * The options that affect what will be escaped.
+ * @internal
  */
-interface EscapeMarkdownOptions {
-    /**
-     * Whether to escape bold text.
-     *
-     * @defaultValue `true`
-     */
-    bold?: boolean;
-    /**
-     * Whether to escape bulleted lists.
-     *
-     * @defaultValue `false`
-     */
-    bulletedList?: boolean;
-    /**
-     * Whether to escape code blocks.
-     *
-     * @defaultValue `true`
-     */
-    codeBlock?: boolean;
-    /**
-     * Whether to escape text inside code blocks.
-     *
-     * @defaultValue `true`
-     */
-    codeBlockContent?: boolean;
-    /**
-     * Whether to escape `\`.
-     *
-     * @defaultValue `true`
-     */
-    escape?: boolean;
-    /**
-     * Whether to escape headings.
-     *
-     * @defaultValue `false`
-     */
-    heading?: boolean;
-    /**
-     * Whether to escape inline code.
-     *
-     * @defaultValue `true`
-     */
-    inlineCode?: boolean;
-    /**
-     * Whether to escape text inside inline code.
-     *
-     * @defaultValue `true`
-     */
-    inlineCodeContent?: boolean;
-    /**
-     * Whether to escape italics.
-     *
-     * @defaultValue `true`
-     */
-    italic?: boolean;
-    /**
-     * Whether to escape masked links.
-     *
-     * @defaultValue `false`
-     */
-    maskedLink?: boolean;
-    /**
-     * Whether to escape numbered lists.
-     *
-     * @defaultValue `false`
-     */
-    numberedList?: boolean;
-    /**
-     * Whether to escape spoilers.
-     *
-     * @defaultValue `true`
-     */
-    spoiler?: boolean;
-    /**
-     * Whether to escape strikethroughs.
-     *
-     * @defaultValue `true`
-     */
-    strikethrough?: boolean;
-    /**
-     * Whether to escape underlines.
-     *
-     * @defaultValue `true`
-     */
-    underline?: boolean;
+interface CollectionConstructor {
+    new (): Collection<unknown, unknown>;
+    new <Key, Value>(entries?: readonly (readonly [Key, Value])[] | null): Collection<Key, Value>;
+    new <Key, Value>(iterable: Iterable<readonly [Key, Value]>): Collection<Key, Value>;
+    readonly prototype: Collection<unknown, unknown>;
+    readonly [Symbol.species]: CollectionConstructor;
 }
 /**
- * Escapes any Discord-flavored markdown in a string.
- *
- * @param text - Content to escape
- * @param options - Options for escaping the markdown
+ * Represents an immutable version of a collection
  */
-declare function escapeMarkdown(text: string, options?: EscapeMarkdownOptions): string;
+type ReadonlyCollection<Key, Value> = Omit<Collection<Key, Value>, 'clear' | 'delete' | 'ensure' | 'forEach' | 'get' | 'reverse' | 'set' | 'sort' | 'sweep'> & ReadonlyMap<Key, Value>;
 /**
- * Escapes code block markdown in a string.
+ * Separate interface for the constructor so that emitted js does not have a constructor that overwrites itself
  *
- * @param text - Content to escape
+ * @internal
  */
-declare function escapeCodeBlock(text: string): string;
-/**
- * Escapes inline code markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeInlineCode(text: string): string;
-/**
- * Escapes italic markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeItalic(text: string): string;
-/**
- * Escapes bold markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeBold(text: string): string;
-/**
- * Escapes underline markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeUnderline(text: string): string;
-/**
- * Escapes strikethrough markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeStrikethrough(text: string): string;
-/**
- * Escapes spoiler markdown in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeSpoiler(text: string): string;
-/**
- * Escapes escape characters in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeEscape(text: string): string;
-/**
- * Escapes heading characters in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeHeading(text: string): string;
-/**
- * Escapes bulleted list characters in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeBulletedList(text: string): string;
-/**
- * Escapes numbered list characters in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeNumberedList(text: string): string;
-/**
- * Escapes masked link characters in a string.
- *
- * @param text - Content to escape
- */
-declare function escapeMaskedLink(text: string): string;
-
-/**
- * Wraps the content inside a code block with no language.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function codeBlock<Content extends string>(content: Content): `\`\`\`\n${Content}\n\`\`\``;
-/**
- * Wraps the content inside a code block with the specified language.
- *
- * @typeParam Language - This is inferred by the supplied language
- * @typeParam Content - This is inferred by the supplied content
- * @param language - The language for the code block
- * @param content - The content to wrap
- */
-declare function codeBlock<Language extends string, Content extends string>(language: Language, content: Content): `\`\`\`${Language}\n${Content}\n\`\`\``;
-/**
- * Wraps the content inside \`backticks\` which formats it as inline code.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function inlineCode<Content extends string>(content: Content): `\`${Content}\``;
-/**
- * Formats the content into italic text.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function italic<Content extends string>(content: Content): `_${Content}_`;
-/**
- * Formats the content into bold text.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function bold<Content extends string>(content: Content): `**${Content}**`;
-/**
- * Formats the content into underscored text.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- * @deprecated Use {@link underline} instead.
- */
-declare function underscore<Content extends string>(content: Content): `__${Content}__`;
-/**
- * Formats the content into underlined text.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function underline<Content extends string>(content: Content): `__${Content}__`;
-/**
- * Formats the content into strike-through text.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function strikethrough<Content extends string>(content: Content): `~~${Content}~~`;
-/**
- * Formats the content into a quote.
- *
- * @remarks This needs to be at the start of the line for Discord to format it.
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function quote<Content extends string>(content: Content): `> ${Content}`;
-/**
- * Formats the content into a block quote.
- *
- * @remarks This needs to be at the start of the line for Discord to format it.
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function blockQuote<Content extends string>(content: Content): `>>> ${Content}`;
-/**
- * Wraps the URL into `<>` which stops it from embedding.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param url - The URL to wrap
- */
-declare function hideLinkEmbed<Content extends string>(url: Content): `<${Content}>`;
-/**
- * Wraps the URL into `<>` which stops it from embedding.
- *
- * @param url - The URL to wrap
- */
-declare function hideLinkEmbed(url: URL): `<${string}>`;
-/**
- * Formats the content and the URL into a masked URL.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to display
- * @param url - The URL the content links to
- */
-declare function hyperlink<Content extends string>(content: Content, url: URL): `[${Content}](${string})`;
-/**
- * Formats the content and the URL into a masked URL.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @typeParam Url - This is inferred by the supplied URL
- * @param content - The content to display
- * @param url - The URL the content links to
- */
-declare function hyperlink<Content extends string, Url extends string>(content: Content, url: Url): `[${Content}](${Url})`;
-/**
- * Formats the content and the URL into a masked URL with a custom tooltip.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @typeParam Title - This is inferred by the supplied title
- * @param content - The content to display
- * @param url - The URL the content links to
- * @param title - The title shown when hovering on the masked link
- */
-declare function hyperlink<Content extends string, Title extends string>(content: Content, url: URL, title: Title): `[${Content}](${string} "${Title}")`;
-/**
- * Formats the content and the URL into a masked URL with a custom tooltip.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @typeParam Url - This is inferred by the supplied URL
- * @typeParam Title - This is inferred by the supplied title
- * @param content - The content to display
- * @param url - The URL the content links to
- * @param title - The title shown when hovering on the masked link
- */
-declare function hyperlink<Content extends string, Url extends string, Title extends string>(content: Content, url: Url, title: Title): `[${Content}](${Url} "${Title}")`;
-/**
- * Formats the content into a spoiler.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function spoiler<Content extends string>(content: Content): `||${Content}||`;
-/**
- * Formats a user id into a user mention.
- *
- * @typeParam UserId - This is inferred by the supplied user id
- * @param userId - The user id to format
- */
-declare function userMention<UserId extends Snowflake>(userId: UserId): `<@${UserId}>`;
-/**
- * Formats a channel id into a channel mention.
- *
- * @typeParam ChannelId - This is inferred by the supplied channel id
- * @param channelId - The channel id to format
- */
-declare function channelMention<ChannelId extends Snowflake>(channelId: ChannelId): `<#${ChannelId}>`;
-/**
- * Formats a role id into a role mention.
- *
- * @typeParam RoleId - This is inferred by the supplied role id
- * @param roleId - The role id to format
- */
-declare function roleMention<RoleId extends Snowflake>(roleId: RoleId): `<@&${RoleId}>`;
-/**
- * Formats an application command name, subcommand group name, subcommand name, and id into an application command mention.
- *
- * @typeParam CommandName - This is inferred by the supplied command name
- * @typeParam SubcommandGroupName - This is inferred by the supplied subcommand group name
- * @typeParam SubcommandName - This is inferred by the supplied subcommand name
- * @typeParam CommandId - This is inferred by the supplied command id
- * @param commandName - The application command name to format
- * @param subcommandGroupName - The subcommand group name to format
- * @param subcommandName - The subcommand name to format
- * @param commandId - The application command id to format
- */
-declare function chatInputApplicationCommandMention<CommandName extends string, SubcommandGroupName extends string, SubcommandName extends string, CommandId extends Snowflake>(commandName: CommandName, subcommandGroupName: SubcommandGroupName, subcommandName: SubcommandName, commandId: CommandId): `</${CommandName} ${SubcommandGroupName} ${SubcommandName}:${CommandId}>`;
-/**
- * Formats an application command name, subcommand name, and id into an application command mention.
- *
- * @typeParam CommandName - This is inferred by the supplied command name
- * @typeParam SubcommandName - This is inferred by the supplied subcommand name
- * @typeParam CommandId - This is inferred by the supplied command id
- * @param commandName - The application command name to format
- * @param subcommandName - The subcommand name to format
- * @param commandId - The application command id to format
- */
-declare function chatInputApplicationCommandMention<CommandName extends string, SubcommandName extends string, CommandId extends Snowflake>(commandName: CommandName, subcommandName: SubcommandName, commandId: CommandId): `</${CommandName} ${SubcommandName}:${CommandId}>`;
-/**
- * Formats an application command name and id into an application command mention.
- *
- * @typeParam CommandName - This is inferred by the supplied command name
- * @typeParam CommandId - This is inferred by the supplied command id
- * @param commandName - The application command name to format
- * @param commandId - The application command id to format
- */
-declare function chatInputApplicationCommandMention<CommandName extends string, CommandId extends Snowflake>(commandName: CommandName, commandId: CommandId): `</${CommandName}:${CommandId}>`;
-/**
- * Formats a non-animated emoji id into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @param emojiId - The emoji id to format
- */
-declare function formatEmoji<EmojiId extends Snowflake>(emojiId: EmojiId, animated?: false): `<:_:${EmojiId}>`;
-/**
- * Formats an animated emoji id into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @param emojiId - The emoji id to format
- * @param animated - Whether the emoji is animated
- */
-declare function formatEmoji<EmojiId extends Snowflake>(emojiId: EmojiId, animated?: true): `<a:_:${EmojiId}>`;
-/**
- * Formats an emoji id into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @param emojiId - The emoji id to format
- * @param animated - Whether the emoji is animated
- */
-declare function formatEmoji<EmojiId extends Snowflake>(emojiId: EmojiId, animated?: boolean): `<:_:${EmojiId}>` | `<a:_:${EmojiId}>`;
-/**
- * Formats a non-animated emoji id and name into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @typeParam EmojiName - This is inferred by the supplied name
- * @param options - The options for formatting an emoji
- */
-declare function formatEmoji<EmojiId extends Snowflake, EmojiName extends string>(options: FormatEmojiOptions<EmojiId, EmojiName> & {
-    animated: true;
-}): `<a:${EmojiName}:${EmojiId}>`;
-/**
- * Formats an animated emoji id and name into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @typeParam EmojiName - This is inferred by the supplied name
- * @param options - The options for formatting an emoji
- */
-declare function formatEmoji<EmojiId extends Snowflake, EmojiName extends string>(options: FormatEmojiOptions<EmojiId, EmojiName> & {
-    animated?: false;
-}): `<:${EmojiName}:${EmojiId}>`;
-/**
- * Formats an emoji id and name into a fully qualified emoji identifier.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @typeParam EmojiName - This is inferred by the supplied emoji name
- * @param options - The options for formatting an emoji
- */
-declare function formatEmoji<EmojiId extends Snowflake, EmojiName extends string>(options: FormatEmojiOptions<EmojiId, EmojiName>): `<:${EmojiName}:${EmojiId}>` | `<a:${EmojiName}:${EmojiId}>`;
-/**
- * The options for formatting an emoji.
- *
- * @typeParam EmojiId - This is inferred by the supplied emoji id
- * @typeParam EmojiName - This is inferred by the supplied emoji name
- */
-interface FormatEmojiOptions<EmojiId extends Snowflake, EmojiName extends string> {
-    /**
-     * Whether the emoji is animated
-     */
-    animated?: boolean;
-    /**
-     * The emoji id to format
-     */
-    id: EmojiId;
-    /**
-     * The name of the emoji
-     */
-    name?: EmojiName;
+interface Collection<Key, Value> extends Map<Key, Value> {
+    constructor: CollectionConstructor;
 }
 /**
- * Formats a channel link for a direct message channel.
+ * A Map with additional utility methods. This is used throughout discord.js rather than Arrays for anything that has
+ * an ID, for significantly improved performance and ease-of-use.
  *
- * @typeParam ChannelId - This is inferred by the supplied channel id
- * @param channelId - The channel's id
+ * @typeParam Key - The key type this collection holds
+ * @typeParam Value - The value type this collection holds
  */
-declare function channelLink<ChannelId extends Snowflake>(channelId: ChannelId): `https://discord.com/channels/@me/${ChannelId}`;
-/**
- * Formats a channel link for a guild channel.
- *
- * @typeParam ChannelId - This is inferred by the supplied channel id
- * @typeParam GuildId - This is inferred by the supplied guild id
- * @param channelId - The channel's id
- * @param guildId - The guild's id
- */
-declare function channelLink<ChannelId extends Snowflake, GuildId extends Snowflake>(channelId: ChannelId, guildId: GuildId): `https://discord.com/channels/${GuildId}/${ChannelId}`;
-/**
- * Formats a message link for a direct message channel.
- *
- * @typeParam ChannelId - This is inferred by the supplied channel id
- * @typeParam MessageId - This is inferred by the supplied message id
- * @param channelId - The channel's id
- * @param messageId - The message's id
- */
-declare function messageLink<ChannelId extends Snowflake, MessageId extends Snowflake>(channelId: ChannelId, messageId: MessageId): `https://discord.com/channels/@me/${ChannelId}/${MessageId}`;
-/**
- * Formats a message link for a guild channel.
- *
- * @typeParam ChannelId - This is inferred by the supplied channel id
- * @typeParam MessageId - This is inferred by the supplied message id
- * @typeParam GuildId - This is inferred by the supplied guild id
- * @param channelId - The channel's id
- * @param messageId - The message's id
- * @param guildId - The guild's id
- */
-declare function messageLink<ChannelId extends Snowflake, MessageId extends Snowflake, GuildId extends Snowflake>(channelId: ChannelId, messageId: MessageId, guildId: GuildId): `https://discord.com/channels/${GuildId}/${ChannelId}/${MessageId}`;
-/**
- * The heading levels for expanded markdown.
- */
-declare enum HeadingLevel {
+declare class Collection<Key, Value> extends Map<Key, Value> {
     /**
-     * The first heading level.
+     * Obtains the value of the given key if it exists, otherwise sets and returns the value provided by the default value generator.
+     *
+     * @param key - The key to get if it exists, or set otherwise
+     * @param defaultValueGenerator - A function that generates the default value
+     * @example
+     * ```ts
+     * collection.ensure(guildId, () => defaultGuildConfig);
+     * ```
      */
-    One = 1,
+    ensure(key: Key, defaultValueGenerator: (key: Key, collection: this) => Value): Value;
     /**
-     * The second heading level.
+     * Checks if all of the elements exist in the collection.
+     *
+     * @param keys - The keys of the elements to check for
+     * @returns `true` if all of the elements exist, `false` if at least one does not exist.
      */
-    Two = 2,
+    hasAll(...keys: Key[]): boolean;
     /**
-     * The third heading level.
+     * Checks if any of the elements exist in the collection.
+     *
+     * @param keys - The keys of the elements to check for
+     * @returns `true` if any of the elements exist, `false` if none exist.
      */
-    Three = 3
+    hasAny(...keys: Key[]): boolean;
+    /**
+     * Obtains the first value(s) in this collection.
+     *
+     * @param amount - Amount of values to obtain from the beginning
+     * @returns A single value if no amount is provided or an array of values, starting from the end if amount is negative
+     */
+    first(): Value | undefined;
+    first(amount: number): Value[];
+    /**
+     * Obtains the first key(s) in this collection.
+     *
+     * @param amount - Amount of keys to obtain from the beginning
+     * @returns A single key if no amount is provided or an array of keys, starting from the end if
+     * amount is negative
+     */
+    firstKey(): Key | undefined;
+    firstKey(amount: number): Key[];
+    /**
+     * Obtains the last value(s) in this collection.
+     *
+     * @param amount - Amount of values to obtain from the end
+     * @returns A single value if no amount is provided or an array of values, starting from the start if
+     * amount is negative
+     */
+    last(): Value | undefined;
+    last(amount: number): Value[];
+    /**
+     * Obtains the last key(s) in this collection.
+     *
+     * @param amount - Amount of keys to obtain from the end
+     * @returns A single key if no amount is provided or an array of keys, starting from the start if
+     * amount is negative
+     */
+    lastKey(): Key | undefined;
+    lastKey(amount: number): Key[];
+    /**
+     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
+     * Returns the item at a given index, allowing for positive and negative integers.
+     * Negative integers count back from the last item in the collection.
+     *
+     * @param index - The index of the element to obtain
+     */
+    at(index: number): Value | undefined;
+    /**
+     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at | Array.at()}.
+     * Returns the key at a given index, allowing for positive and negative integers.
+     * Negative integers count back from the last item in the collection.
+     *
+     * @param index - The index of the key to obtain
+     */
+    keyAt(index: number): Key | undefined;
+    /**
+     * Obtains unique random value(s) from this collection.
+     *
+     * @param amount - Amount of values to obtain randomly
+     * @returns A single value if no amount is provided or an array of values
+     */
+    random(): Value | undefined;
+    random(amount: number): Value[];
+    /**
+     * Obtains unique random key(s) from this collection.
+     *
+     * @param amount - Amount of keys to obtain randomly
+     * @returns A single key if no amount is provided or an array
+     */
+    randomKey(): Key | undefined;
+    randomKey(amount: number): Key[];
+    /**
+     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse | Array.reverse()}
+     * but returns a Collection instead of an Array.
+     */
+    reverse(): this;
+    /**
+     * Searches for a single item where the given function returns a truthy value. This behaves like
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find | Array.find()}.
+     * All collections used in Discord.js are mapped using their `id` property, and if you want to find by id you
+     * should use the `get` method. See
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get | MDN} for details.
+     *
+     * @param fn - The function to test with (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.find(user => user.username === 'Bob');
+     * ```
+     */
+    find<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): NewValue | undefined;
+    find(fn: (value: Value, key: Key, collection: this) => unknown): Value | undefined;
+    find<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): NewValue | undefined;
+    find<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Value | undefined;
+    /**
+     * Searches for the key of a single item where the given function returns a truthy value. This behaves like
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex | Array.findIndex()},
+     * but returns the key rather than the positional index.
+     *
+     * @param fn - The function to test with (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.findKey(user => user.username === 'Bob');
+     * ```
+     */
+    findKey<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): NewKey | undefined;
+    findKey(fn: (value: Value, key: Key, collection: this) => unknown): Key | undefined;
+    findKey<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): NewKey | undefined;
+    findKey<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Key | undefined;
+    /**
+     * Searches for a last item where the given function returns a truthy value. This behaves like
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast | Array.findLast()}.
+     *
+     * @param fn - The function to test with (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     */
+    findLast<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): NewValue | undefined;
+    findLast(fn: (value: Value, key: Key, collection: this) => unknown): Value | undefined;
+    findLast<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): NewValue | undefined;
+    findLast<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Value | undefined;
+    /**
+     * Searches for the key of a last item where the given function returns a truthy value. This behaves like
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLastIndex | Array.findLastIndex()},
+     * but returns the key rather than the positional index.
+     *
+     * @param fn - The function to test with (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     */
+    findLastKey<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): NewKey | undefined;
+    findLastKey(fn: (value: Value, key: Key, collection: this) => unknown): Key | undefined;
+    findLastKey<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): NewKey | undefined;
+    findLastKey<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Key | undefined;
+    /**
+     * Removes items that satisfy the provided filter function.
+     *
+     * @param fn - Function used to test (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @returns The number of removed entries
+     */
+    sweep(fn: (value: Value, key: Key, collection: this) => unknown): number;
+    sweep<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): number;
+    /**
+     * Identical to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter | Array.filter()},
+     * but returns a Collection instead of an Array.
+     *
+     * @param fn - The function to test with (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.filter(user => user.username === 'Bob');
+     * ```
+     */
+    filter<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): Collection<NewKey, Value>;
+    filter<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): Collection<Key, NewValue>;
+    filter(fn: (value: Value, key: Key, collection: this) => unknown): Collection<Key, Value>;
+    filter<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): Collection<NewKey, Value>;
+    filter<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): Collection<Key, NewValue>;
+    filter<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): Collection<Key, Value>;
+    /**
+     * Partitions the collection into two collections where the first collection
+     * contains the items that passed and the second contains the items that failed.
+     *
+     * @param fn - Function used to test (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * const [big, small] = collection.partition(guild => guild.memberCount > 250);
+     * ```
+     */
+    partition<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): [Collection<NewKey, Value>, Collection<Exclude<Key, NewKey>, Value>];
+    partition<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): [Collection<Key, NewValue>, Collection<Key, Exclude<Value, NewValue>>];
+    partition(fn: (value: Value, key: Key, collection: this) => unknown): [Collection<Key, Value>, Collection<Key, Value>];
+    partition<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): [Collection<NewKey, Value>, Collection<Exclude<Key, NewKey>, Value>];
+    partition<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): [Collection<Key, NewValue>, Collection<Key, Exclude<Value, NewValue>>];
+    partition<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): [Collection<Key, Value>, Collection<Key, Value>];
+    /**
+     * Maps each item into a Collection, then joins the results into a single Collection. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap | Array.flatMap()}.
+     *
+     * @param fn - Function that produces a new Collection
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.flatMap(guild => guild.members.cache);
+     * ```
+     */
+    flatMap<NewValue>(fn: (value: Value, key: Key, collection: this) => Collection<Key, NewValue>): Collection<Key, NewValue>;
+    flatMap<NewValue, This>(fn: (this: This, value: Value, key: Key, collection: this) => Collection<Key, NewValue>, thisArg: This): Collection<Key, NewValue>;
+    /**
+     * Maps each item to another value into an array. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map | Array.map()}.
+     *
+     * @param fn - Function that produces an element of the new array, taking three arguments
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.map(user => user.tag);
+     * ```
+     */
+    map<NewValue>(fn: (value: Value, key: Key, collection: this) => NewValue): NewValue[];
+    map<This, NewValue>(fn: (this: This, value: Value, key: Key, collection: this) => NewValue, thisArg: This): NewValue[];
+    /**
+     * Maps each item to another value into a collection. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map | Array.map()}.
+     *
+     * @param fn - Function that produces an element of the new collection, taking three arguments
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.mapValues(user => user.tag);
+     * ```
+     */
+    mapValues<NewValue>(fn: (value: Value, key: Key, collection: this) => NewValue): Collection<Key, NewValue>;
+    mapValues<This, NewValue>(fn: (this: This, value: Value, key: Key, collection: this) => NewValue, thisArg: This): Collection<Key, NewValue>;
+    /**
+     * Checks if there exists an item that passes a test. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some | Array.some()}.
+     *
+     * @param fn - Function used to test (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.some(user => user.discriminator === '0000');
+     * ```
+     */
+    some(fn: (value: Value, key: Key, collection: this) => unknown): boolean;
+    some<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): boolean;
+    /**
+     * Checks if all items passes a test. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every | Array.every()}.
+     *
+     * @param fn - Function used to test (should return a boolean)
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection.every(user => !user.bot);
+     * ```
+     */
+    every<NewKey extends Key>(fn: (value: Value, key: Key, collection: this) => key is NewKey): this is Collection<NewKey, Value>;
+    every<NewValue extends Value>(fn: (value: Value, key: Key, collection: this) => value is NewValue): this is Collection<Key, NewValue>;
+    every(fn: (value: Value, key: Key, collection: this) => unknown): boolean;
+    every<This, NewKey extends Key>(fn: (this: This, value: Value, key: Key, collection: this) => key is NewKey, thisArg: This): this is Collection<NewKey, Value>;
+    every<This, NewValue extends Value>(fn: (this: This, value: Value, key: Key, collection: this) => value is NewValue, thisArg: This): this is Collection<Key, NewValue>;
+    every<This>(fn: (this: This, value: Value, key: Key, collection: this) => unknown, thisArg: This): boolean;
+    /**
+     * Applies a function to produce a single value. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce | Array.reduce()}.
+     *
+     * @param fn - Function used to reduce, taking four arguments; `accumulator`, `currentValue`, `currentKey`,
+     * and `collection`
+     * @param initialValue - Starting value for the accumulator
+     * @example
+     * ```ts
+     * collection.reduce((acc, guild) => acc + guild.memberCount, 0);
+     * ```
+     */
+    reduce(fn: (accumulator: Value, value: Value, key: Key, collection: this) => Value, initialValue?: Value): Value;
+    reduce<InitialValue>(fn: (accumulator: InitialValue, value: Value, key: Key, collection: this) => InitialValue, initialValue: InitialValue): InitialValue;
+    /**
+     * Applies a function to produce a single value. Identical in behavior to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight | Array.reduceRight()}.
+     *
+     * @param fn - Function used to reduce, taking four arguments; `accumulator`, `value`, `key`, and `collection`
+     * @param initialValue - Starting value for the accumulator
+     */
+    reduceRight(fn: (accumulator: Value, value: Value, key: Key, collection: this) => Value, initialValue?: Value): Value;
+    reduceRight<InitialValue>(fn: (accumulator: InitialValue, value: Value, key: Key, collection: this) => InitialValue, initialValue: InitialValue): InitialValue;
+    /**
+     * Identical to
+     * {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach | Map.forEach()},
+     * but returns the collection instead of undefined.
+     *
+     * @param fn - Function to execute for each element
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection
+     *  .each(user => console.log(user.username))
+     *  .filter(user => user.bot)
+     *  .each(user => console.log(user.username));
+     * ```
+     */
+    each(fn: (value: Value, key: Key, collection: this) => void): this;
+    each<This>(fn: (this: This, value: Value, key: Key, collection: this) => void, thisArg: This): this;
+    /**
+     * Runs a function on the collection and returns the collection.
+     *
+     * @param fn - Function to execute
+     * @param thisArg - Value to use as `this` when executing the function
+     * @example
+     * ```ts
+     * collection
+     *  .tap(coll => console.log(coll.size))
+     *  .filter(user => user.bot)
+     *  .tap(coll => console.log(coll.size))
+     * ```
+     */
+    tap(fn: (collection: this) => void): this;
+    tap<This>(fn: (this: This, collection: this) => void, thisArg: This): this;
+    /**
+     * Creates an identical shallow copy of this collection.
+     *
+     * @example
+     * ```ts
+     * const newColl = someColl.clone();
+     * ```
+     */
+    clone(): Collection<Key, Value>;
+    /**
+     * Combines this collection with others into a new collection. None of the source collections are modified.
+     *
+     * @param collections - Collections to merge
+     * @example
+     * ```ts
+     * const newColl = someColl.concat(someOtherColl, anotherColl, ohBoyAColl);
+     * ```
+     */
+    concat(...collections: ReadonlyCollection<Key, Value>[]): Collection<Key, Value>;
+    /**
+     * Checks if this collection shares identical items with another.
+     * This is different to checking for equality using equal-signs, because
+     * the collections may be different objects, but contain the same data.
+     *
+     * @param collection - Collection to compare with
+     * @returns Whether the collections have identical contents
+     */
+    equals(collection: ReadonlyCollection<Key, Value>): boolean;
+    /**
+     * The sort method sorts the items of a collection in place and returns it.
+     * The sort is not necessarily stable in Node 10 or older.
+     * The default sort order is according to string Unicode code points.
+     *
+     * @param compareFunction - Specifies a function that defines the sort order.
+     * If omitted, the collection is sorted according to each character's Unicode code point value, according to the string conversion of each element.
+     * @example
+     * ```ts
+     * collection.sort((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
+     * ```
+     */
+    sort(compareFunction?: Comparator<Key, Value>): this;
+    /**
+     * The intersection method returns a new collection containing the items where the key is present in both collections.
+     *
+     * @param other - The other Collection to filter against
+     * @example
+     * ```ts
+     * const col1 = new Collection([['a', 1], ['b', 2]]);
+     * const col2 = new Collection([['a', 1], ['c', 3]]);
+     * const intersection = col1.intersection(col2);
+     * console.log(col1.intersection(col2));
+     * // => Collection { 'a' => 1 }
+     * ```
+     */
+    intersection(other: ReadonlyCollection<Key, any>): Collection<Key, Value>;
+    /**
+     * Returns a new collection containing the items where the key is present in either of the collections.
+     *
+     * @remarks
+     *
+     * If the collections have any items with the same key, the value from the first collection will be used.
+     * @param other - The other Collection to filter against
+     * @example
+     * ```ts
+     * const col1 = new Collection([['a', 1], ['b', 2]]);
+     * const col2 = new Collection([['a', 1], ['b', 3], ['c', 3]]);
+     * const union = col1.union(col2);
+     * console.log(union);
+     * // => Collection { 'a' => 1, 'b' => 2, 'c' => 3 }
+     * ```
+     */
+    union<OtherValue>(other: ReadonlyCollection<Key, OtherValue>): Collection<Key, OtherValue | Value>;
+    /**
+     * Returns a new collection containing the items where the key is present in this collection but not the other.
+     *
+     * @param other - The other Collection to filter against
+     * @example
+     * ```ts
+     * const col1 = new Collection([['a', 1], ['b', 2]]);
+     * const col2 = new Collection([['a', 1], ['c', 3]]);
+     * console.log(col1.difference(col2));
+     * // => Collection { 'b' => 2 }
+     * console.log(col2.difference(col1));
+     * // => Collection { 'c' => 3 }
+     * ```
+     */
+    difference(other: ReadonlyCollection<Key, any>): Collection<Key, Value>;
+    /**
+     * Returns a new collection containing only the items where the keys are present in either collection, but not both.
+     *
+     * @param other - The other Collection to filter against
+     * @example
+     * ```ts
+     * const col1 = new Collection([['a', 1], ['b', 2]]);
+     * const col2 = new Collection([['a', 1], ['c', 3]]);
+     * const symmetricDifference = col1.symmetricDifference(col2);
+     * console.log(col1.symmetricDifference(col2));
+     * // => Collection { 'b' => 2, 'c' => 3 }
+     * ```
+     */
+    symmetricDifference<OtherValue>(other: ReadonlyCollection<Key, OtherValue>): Collection<Key, OtherValue | Value>;
+    /**
+     * Merges two Collections together into a new Collection.
+     *
+     * @param other - The other Collection to merge with
+     * @param whenInSelf - Function getting the result if the entry only exists in this Collection
+     * @param whenInOther - Function getting the result if the entry only exists in the other Collection
+     * @param whenInBoth - Function getting the result if the entry exists in both Collections
+     * @example
+     * ```ts
+     * // Sums up the entries in two collections.
+     * coll.merge(
+     *  other,
+     *  x => ({ keep: true, value: x }),
+     *  y => ({ keep: true, value: y }),
+     *  (x, y) => ({ keep: true, value: x + y }),
+     * );
+     * ```
+     * @example
+     * ```ts
+     * // Intersects two collections in a left-biased manner.
+     * coll.merge(
+     *  other,
+     *  x => ({ keep: false }),
+     *  y => ({ keep: false }),
+     *  (x, _) => ({ keep: true, value: x }),
+     * );
+     * ```
+     */
+    merge<OtherValue, ResultValue>(other: ReadonlyCollection<Key, OtherValue>, whenInSelf: (value: Value, key: Key) => Keep<ResultValue>, whenInOther: (valueOther: OtherValue, key: Key) => Keep<ResultValue>, whenInBoth: (value: Value, valueOther: OtherValue, key: Key) => Keep<ResultValue>): Collection<Key, ResultValue>;
+    /**
+     * Identical to {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toReversed | Array.toReversed()}
+     * but returns a Collection instead of an Array.
+     */
+    toReversed(): Collection<Key, Value>;
+    /**
+     * The sorted method sorts the items of a collection and returns it.
+     * The sort is not necessarily stable in Node 10 or older.
+     * The default sort order is according to string Unicode code points.
+     *
+     * @param compareFunction - Specifies a function that defines the sort order.
+     * If omitted, the collection is sorted according to each character's Unicode code point value,
+     * according to the string conversion of each element.
+     * @example
+     * ```ts
+     * collection.sorted((userA, userB) => userA.createdTimestamp - userB.createdTimestamp);
+     * ```
+     */
+    toSorted(compareFunction?: Comparator<Key, Value>): Collection<Key, Value>;
+    toJSON(): [Key, Value][];
+    private static defaultSort;
+    /**
+     * Creates a Collection from a list of entries.
+     *
+     * @param entries - The list of entries
+     * @param combine - Function to combine an existing entry with a new one
+     * @example
+     * ```ts
+     * Collection.combineEntries([["a", 1], ["b", 2], ["a", 2]], (x, y) => x + y);
+     * // returns Collection { "a" => 3, "b" => 2 }
+     * ```
+     */
+    static combineEntries<Key, Value>(entries: Iterable<[Key, Value]>, combine: (firstValue: Value, secondValue: Value, key: Key) => Value): Collection<Key, Value>;
 }
 /**
- * Formats the content into a heading level.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- * @param level - The heading level
+ * @internal
  */
-declare function heading<Content extends string>(content: Content, level?: HeadingLevel.One): `# ${Content}`;
-/**
- * Formats the content into a heading level.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- * @param level - The heading level
- */
-declare function heading<Content extends string>(content: Content, level: HeadingLevel.Two): `## ${Content}`;
-/**
- * Formats the content into a heading level.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- * @param level - The heading level
- */
-declare function heading<Content extends string>(content: Content, level: HeadingLevel.Three): `### ${Content}`;
-/**
- * A type that recursively traverses into arrays.
- */
-type RecursiveArray<ItemType> = readonly (ItemType | RecursiveArray<ItemType>)[];
-/**
- * Formats the elements in the array to an ordered list.
- *
- * @param list - The array of elements to list
- * @param startNumber - The starting number for the list
- */
-declare function orderedList(list: RecursiveArray<string>, startNumber?: number): string;
-/**
- * Formats the elements in the array to an unordered list.
- *
- * @param list - The array of elements to list
- */
-declare function unorderedList(list: RecursiveArray<string>): string;
-/**
- * Formats the content into a subtext.
- *
- * @typeParam Content - This is inferred by the supplied content
- * @param content - The content to wrap
- */
-declare function subtext<Content extends string>(content: Content): `-# ${Content}`;
-/**
- * Formats a date into a short date-time string.
- *
- * @param date - The date to format. Defaults to the current time
- */
-declare function time(date?: Date): `<t:${bigint}>`;
-/**
- * Formats a date given a format style.
- *
- * @typeParam Style - This is inferred by the supplied {@link TimestampStylesString}
- * @param date - The date to format
- * @param style - The style to use
- */
-declare function time<Style extends TimestampStylesString>(date: Date, style: Style): `<t:${bigint}:${Style}>`;
-/**
- * Formats the given timestamp into a short date-time string.
- *
- * @typeParam Seconds - This is inferred by the supplied timestamp
- * @param seconds - A Unix timestamp in seconds
- */
-declare function time<Seconds extends number>(seconds: Seconds): `<t:${Seconds}>`;
-/**
- * Formats the given timestamp into a short date-time string.
- *
- * @typeParam Seconds - This is inferred by the supplied timestamp
- * @typeParam Style - This is inferred by the supplied {@link TimestampStylesString}
- * @param seconds - A Unix timestamp in seconds
- * @param style - The style to use
- */
-declare function time<Seconds extends number, Style extends TimestampStylesString>(seconds: Seconds, style: Style): `<t:${Seconds}:${Style}>`;
-/**
- * Formats an application directory link.
- *
- * @typeParam ApplicationId - This is inferred by the supplied application id
- * @param applicationId - The application id
- */
-declare function applicationDirectory<ApplicationId extends Snowflake>(applicationId: ApplicationId): `https://discord.com/application-directory/${ApplicationId}/store`;
-/**
- * Formats an application directory SKU link.
- *
- * @typeParam ApplicationId - This is inferred by the supplied application id
- * @typeParam SKUId - This is inferred by the supplied SKU id
- * @param applicationId - The application id
- * @param skuId - The SKU id
- */
-declare function applicationDirectory<ApplicationId extends Snowflake, SKUId extends Snowflake>(applicationId: ApplicationId, skuId: SKUId): `https://discord.com/application-directory/${ApplicationId}/store/${SKUId}`;
-/**
- * The {@link https://discord.com/developers/docs/reference#message-formatting-timestamp-styles | message formatting timestamp styles}
- * supported by Discord.
- */
-declare const TimestampStyles: {
-    /**
-     * Short time format, consisting of hours and minutes.
-     *
-     * @example `16:20`
-     */
-    readonly ShortTime: "t";
-    /**
-     * Long time format, consisting of hours, minutes, and seconds.
-     *
-     * @example `16:20:30`
-     */
-    readonly LongTime: "T";
-    /**
-     * Short date format, consisting of day, month, and year.
-     *
-     * @example `20/04/2021`
-     */
-    readonly ShortDate: "d";
-    /**
-     * Long date format, consisting of day, month, and year.
-     *
-     * @example `20 April 2021`
-     */
-    readonly LongDate: "D";
-    /**
-     * Short date-time format, consisting of short date and short time formats.
-     *
-     * @example `20 April 2021 16:20`
-     */
-    readonly ShortDateTime: "f";
-    /**
-     * Long date-time format, consisting of long date and short time formats.
-     *
-     * @example `Tuesday, 20 April 2021 16:20`
-     */
-    readonly LongDateTime: "F";
-    /**
-     * Relative time format, consisting of a relative duration format.
-     *
-     * @example `2 months ago`
-     */
-    readonly RelativeTime: "R";
+type Keep<Value> = {
+    keep: false;
+} | {
+    keep: true;
+    value: Value;
 };
 /**
- * The possible {@link TimestampStyles} values.
+ * @internal
  */
-type TimestampStylesString = (typeof TimestampStyles)[keyof typeof TimestampStyles];
-/**
- * All the available faces from Discord's native slash commands.
- */
-declare enum Faces {
-    /**
-     * `¯\_(ツ)_/¯`
-     */
-    Shrug = "\u00AF\\_(\u30C4)_/\u00AF",
-    /**
-     * `(╯°□°)╯︵ ┻━┻`
-     */
-    Tableflip = "(\u256F\u00B0\u25A1\u00B0)\u256F\uFE35 \u253B\u2501\u253B",
-    /**
-     * `┬─┬ノ( º _ ºノ)`
-     */
-    Unflip = "\u252C\u2500\u252C\u30CE( \u00BA _ \u00BA\u30CE)"
-}
-/**
- * All the available guild navigation mentions.
- */
-declare enum GuildNavigationMentions {
-    /**
-     * Browse Channels tab.
-     */
-    Browse = "<id:browse>",
-    /**
-     * Customize tab with the server's {@link https://discord.com/developers/docs/resources/guild#guild-onboarding-object | onboarding prompts}.
-     */
-    Customize = "<id:customize>",
-    /**
-     * {@link https://support.discord.com/hc/articles/13497665141655 | Server Guide} tab.
-     */
-    Guide = "<id:guide>"
-}
+type Comparator<Key, Value> = (firstValue: Value, secondValue: Value, firstKey: Key, secondKey: Key) => number;
 
 /**
- * The {@link https://github.com/discordjs/discord.js/blob/main/packages/formatters#readme | @discordjs/formatters} version
+ * The {@link https://github.com/discordjs/discord.js/blob/main/packages/collection#readme | @discordjs/collection} version
  * that you are currently using.
- *
- * @privateRemarks This needs to explicitly be `string` so it is not typed as a "const string" that gets injected by esbuild.
  */
 declare const version: string;
 
-export { type EscapeMarkdownOptions, Faces, type FormatEmojiOptions, GuildNavigationMentions, HeadingLevel, type RecursiveArray, TimestampStyles, type TimestampStylesString, applicationDirectory, blockQuote, bold, channelLink, channelMention, chatInputApplicationCommandMention, codeBlock, escapeBold, escapeBulletedList, escapeCodeBlock, escapeEscape, escapeHeading, escapeInlineCode, escapeItalic, escapeMarkdown, escapeMaskedLink, escapeNumberedList, escapeSpoiler, escapeStrikethrough, escapeUnderline, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, messageLink, orderedList, quote, roleMention, spoiler, strikethrough, subtext, time, underline, underscore, unorderedList, userMention, version };
+export { Collection, type CollectionConstructor, type Comparator, type Keep, type ReadonlyCollection, version };
