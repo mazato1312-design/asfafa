@@ -1,445 +1,572 @@
-/// <reference types="node" />
+// TypeScript Version: 4.7
+export type AxiosHeaderValue = AxiosHeaders | string | string[] | number | boolean | null;
 
-import { EventEmitter } from "events";
-import {
-    Agent,
-    ClientRequest,
-    ClientRequestArgs,
-    IncomingMessage,
-    OutgoingHttpHeaders,
-    Server as HTTPServer,
-} from "http";
-import { Server as HTTPSServer } from "https";
-import { createConnection } from "net";
-import { Duplex, DuplexOptions } from "stream";
-import { SecureContextOptions } from "tls";
-import { URL } from "url";
-import { ZlibOptions } from "zlib";
-
-// can not get all overload of BufferConstructor['from'], need to copy all it's first arguments here
-// https://github.com/microsoft/TypeScript/issues/32164
-type BufferLike =
-    | string
-    | Buffer
-    | DataView
-    | number
-    | ArrayBufferView
-    | Uint8Array
-    | ArrayBuffer
-    | SharedArrayBuffer
-    | Blob
-    | readonly any[]
-    | readonly number[]
-    | { valueOf(): ArrayBuffer }
-    | { valueOf(): SharedArrayBuffer }
-    | { valueOf(): Uint8Array }
-    | { valueOf(): readonly number[] }
-    | { valueOf(): string }
-    | { [Symbol.toPrimitive](hint: string): string };
-
-// WebSocket socket.
-declare class WebSocket extends EventEmitter {
-    /** The connection is not yet open. */
-    static readonly CONNECTING: 0;
-    /** The connection is open and ready to communicate. */
-    static readonly OPEN: 1;
-    /** The connection is in the process of closing. */
-    static readonly CLOSING: 2;
-    /** The connection is closed. */
-    static readonly CLOSED: 3;
-
-    binaryType: "nodebuffer" | "arraybuffer" | "fragments";
-    readonly bufferedAmount: number;
-    readonly extensions: string;
-    /** Indicates whether the websocket is paused */
-    readonly isPaused: boolean;
-    readonly protocol: string;
-    /** The current state of the connection */
-    readonly readyState:
-        | typeof WebSocket.CONNECTING
-        | typeof WebSocket.OPEN
-        | typeof WebSocket.CLOSING
-        | typeof WebSocket.CLOSED;
-    readonly url: string;
-
-    /** The connection is not yet open. */
-    readonly CONNECTING: 0;
-    /** The connection is open and ready to communicate. */
-    readonly OPEN: 1;
-    /** The connection is in the process of closing. */
-    readonly CLOSING: 2;
-    /** The connection is closed. */
-    readonly CLOSED: 3;
-
-    onopen: ((event: WebSocket.Event) => void) | null;
-    onerror: ((event: WebSocket.ErrorEvent) => void) | null;
-    onclose: ((event: WebSocket.CloseEvent) => void) | null;
-    onmessage: ((event: WebSocket.MessageEvent) => void) | null;
-
-    constructor(address: null);
-    constructor(address: string | URL, options?: WebSocket.ClientOptions | ClientRequestArgs);
-    constructor(
-        address: string | URL,
-        protocols?: string | string[],
-        options?: WebSocket.ClientOptions | ClientRequestArgs,
-    );
-
-    close(code?: number, data?: string | Buffer): void;
-    ping(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
-    pong(data?: any, mask?: boolean, cb?: (err: Error) => void): void;
-    // https://github.com/websockets/ws/issues/2076#issuecomment-1250354722
-    send(data: BufferLike, cb?: (err?: Error) => void): void;
-    send(
-        data: BufferLike,
-        options: {
-            mask?: boolean | undefined;
-            binary?: boolean | undefined;
-            compress?: boolean | undefined;
-            fin?: boolean | undefined;
-        },
-        cb?: (err?: Error) => void,
-    ): void;
-    terminate(): void;
-
-    /**
-     * Pause the websocket causing it to stop emitting events. Some events can still be
-     * emitted after this is called, until all buffered data is consumed. This method
-     * is a noop if the ready state is `CONNECTING` or `CLOSED`.
-     */
-    pause(): void;
-    /**
-     * Make a paused socket resume emitting events. This method is a noop if the ready
-     * state is `CONNECTING` or `CLOSED`.
-     */
-    resume(): void;
-
-    // HTML5 WebSocket events
-    addEventListener<K extends keyof WebSocket.WebSocketEventMap>(
-        type: K,
-        listener:
-            | ((event: WebSocket.WebSocketEventMap[K]) => void)
-            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
-        options?: WebSocket.EventListenerOptions,
-    ): void;
-    removeEventListener<K extends keyof WebSocket.WebSocketEventMap>(
-        type: K,
-        listener:
-            | ((event: WebSocket.WebSocketEventMap[K]) => void)
-            | { handleEvent(event: WebSocket.WebSocketEventMap[K]): void },
-    ): void;
-
-    // Events
-    on(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
-    on(event: "error", listener: (this: WebSocket, error: Error) => void): this;
-    on(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
-    on(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
-    on(event: "open", listener: (this: WebSocket) => void): this;
-    on(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
-    on(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
-    on(
-        event: "unexpected-response",
-        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
-    ): this;
-    on(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
-
-    once(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
-    once(event: "error", listener: (this: WebSocket, error: Error) => void): this;
-    once(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
-    once(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
-    once(event: "open", listener: (this: WebSocket) => void): this;
-    once(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
-    once(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
-    once(
-        event: "unexpected-response",
-        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
-    ): this;
-    once(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
-
-    off(event: "close", listener: (this: WebSocket, code: number, reason: Buffer) => void): this;
-    off(event: "error", listener: (this: WebSocket, error: Error) => void): this;
-    off(event: "upgrade", listener: (this: WebSocket, request: IncomingMessage) => void): this;
-    off(event: "message", listener: (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) => void): this;
-    off(event: "open", listener: (this: WebSocket) => void): this;
-    off(event: "ping" | "pong", listener: (this: WebSocket, data: Buffer) => void): this;
-    off(event: "redirect", listener: (this: WebSocket, url: string, request: ClientRequest) => void): this;
-    off(
-        event: "unexpected-response",
-        listener: (this: WebSocket, request: ClientRequest, response: IncomingMessage) => void,
-    ): this;
-    off(event: string | symbol, listener: (this: WebSocket, ...args: any[]) => void): this;
-
-    addListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
-    addListener(event: "error", listener: (error: Error) => void): this;
-    addListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
-    addListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
-    addListener(event: "open", listener: () => void): this;
-    addListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
-    addListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
-    addListener(
-        event: "unexpected-response",
-        listener: (request: ClientRequest, response: IncomingMessage) => void,
-    ): this;
-    addListener(event: string | symbol, listener: (...args: any[]) => void): this;
-
-    removeListener(event: "close", listener: (code: number, reason: Buffer) => void): this;
-    removeListener(event: "error", listener: (error: Error) => void): this;
-    removeListener(event: "upgrade", listener: (request: IncomingMessage) => void): this;
-    removeListener(event: "message", listener: (data: WebSocket.RawData, isBinary: boolean) => void): this;
-    removeListener(event: "open", listener: () => void): this;
-    removeListener(event: "ping" | "pong", listener: (data: Buffer) => void): this;
-    removeListener(event: "redirect", listener: (url: string, request: ClientRequest) => void): this;
-    removeListener(
-        event: "unexpected-response",
-        listener: (request: ClientRequest, response: IncomingMessage) => void,
-    ): this;
-    removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
+interface RawAxiosHeaders {
+  [key: string]: AxiosHeaderValue;
 }
 
-declare const WebSocketAlias: typeof WebSocket;
-interface WebSocketAlias extends WebSocket {} // eslint-disable-line @typescript-eslint/no-empty-interface
+type MethodsHeaders = Partial<{
+  [Key in Method as Lowercase<Key>]: AxiosHeaders;
+} & {common: AxiosHeaders}>;
 
-declare namespace WebSocket {
-    /**
-     * Data represents the raw message payload received over the WebSocket.
-     */
-    type RawData = Buffer | ArrayBuffer | Buffer[];
+type AxiosHeaderMatcher = string | RegExp | ((this: AxiosHeaders, value: string, name: string) => boolean);
 
-    /**
-     * Data represents the message payload received over the WebSocket.
-     */
-    type Data = string | Buffer | ArrayBuffer | Buffer[];
+type AxiosHeaderParser = (this: AxiosHeaders, value: AxiosHeaderValue, header: string) => any;
 
-    /**
-     * CertMeta represents the accepted types for certificate & key data.
-     */
-    type CertMeta = string | string[] | Buffer | Buffer[];
+export class AxiosHeaders {
+  constructor(
+      headers?: RawAxiosHeaders | AxiosHeaders | string
+  );
 
-    /**
-     * VerifyClientCallbackSync is a synchronous callback used to inspect the
-     * incoming message. The return value (boolean) of the function determines
-     * whether or not to accept the handshake.
-     */
-    type VerifyClientCallbackSync<Request extends IncomingMessage = IncomingMessage> = (info: {
-        origin: string;
-        secure: boolean;
-        req: Request;
-    }) => boolean;
+  [key: string]: any;
 
-    /**
-     * VerifyClientCallbackAsync is an asynchronous callback used to inspect the
-     * incoming message. The return value (boolean) of the function determines
-     * whether or not to accept the handshake.
-     */
-    type VerifyClientCallbackAsync<Request extends IncomingMessage = IncomingMessage> = (
-        info: { origin: string; secure: boolean; req: Request },
-        callback: (res: boolean, code?: number, message?: string, headers?: OutgoingHttpHeaders) => void,
-    ) => void;
+  set(headerName?: string, value?: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  set(headers?: RawAxiosHeaders | AxiosHeaders | string, rewrite?: boolean): AxiosHeaders;
 
-    /**
-     * FinishRequestCallback is a callback for last minute customization of the
-     * headers. If finishRequest is set, then it has the responsibility to call
-     * request.end() once it is done setting request headers.
-     */
-    type FinishRequestCallback = (request: ClientRequest, websocket: WebSocket) => void;
+  get(headerName: string, parser: RegExp): RegExpExecArray | null;
+  get(headerName: string, matcher?: true | AxiosHeaderParser): AxiosHeaderValue;
 
-    interface ClientOptions extends SecureContextOptions {
-        protocol?: string | undefined;
-        followRedirects?: boolean | undefined;
-        generateMask?(mask: Buffer): void;
-        handshakeTimeout?: number | undefined;
-        maxRedirects?: number | undefined;
-        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
-        localAddress?: string | undefined;
-        protocolVersion?: number | undefined;
-        headers?: { [key: string]: string } | undefined;
-        origin?: string | undefined;
-        agent?: Agent | undefined;
-        host?: string | undefined;
-        family?: number | undefined;
-        checkServerIdentity?(servername: string, cert: CertMeta): boolean;
-        rejectUnauthorized?: boolean | undefined;
-        allowSynchronousEvents?: boolean | undefined;
-        autoPong?: boolean | undefined;
-        maxPayload?: number | undefined;
-        skipUTF8Validation?: boolean | undefined;
-        createConnection?: typeof createConnection | undefined;
-        finishRequest?: FinishRequestCallback | undefined;
-    }
+  has(header: string, matcher?: AxiosHeaderMatcher): boolean;
 
-    interface PerMessageDeflateOptions {
-        serverNoContextTakeover?: boolean | undefined;
-        clientNoContextTakeover?: boolean | undefined;
-        serverMaxWindowBits?: number | undefined;
-        clientMaxWindowBits?: number | undefined;
-        zlibDeflateOptions?: {
-            flush?: number | undefined;
-            finishFlush?: number | undefined;
-            chunkSize?: number | undefined;
-            windowBits?: number | undefined;
-            level?: number | undefined;
-            memLevel?: number | undefined;
-            strategy?: number | undefined;
-            dictionary?: Buffer | Buffer[] | DataView | undefined;
-            info?: boolean | undefined;
-        } | undefined;
-        zlibInflateOptions?: ZlibOptions | undefined;
-        threshold?: number | undefined;
-        concurrencyLimit?: number | undefined;
-    }
+  delete(header: string | string[], matcher?: AxiosHeaderMatcher): boolean;
 
-    interface Event {
-        type: string;
-        target: WebSocket;
-    }
+  clear(matcher?: AxiosHeaderMatcher): boolean;
 
-    interface ErrorEvent {
-        error: any;
-        message: string;
-        type: string;
-        target: WebSocket;
-    }
+  normalize(format: boolean): AxiosHeaders;
 
-    interface CloseEvent {
-        wasClean: boolean;
-        code: number;
-        reason: string;
-        type: string;
-        target: WebSocket;
-    }
+  concat(...targets: Array<AxiosHeaders | RawAxiosHeaders | string | undefined | null>): AxiosHeaders;
 
-    interface MessageEvent {
-        data: Data;
-        type: string;
-        target: WebSocket;
-    }
+  toJSON(asStrings?: boolean): RawAxiosHeaders;
 
-    interface WebSocketEventMap {
-        open: Event;
-        error: ErrorEvent;
-        close: CloseEvent;
-        message: MessageEvent;
-    }
+  static from(thing?: AxiosHeaders | RawAxiosHeaders | string): AxiosHeaders;
 
-    interface EventListenerOptions {
-        once?: boolean | undefined;
-    }
+  static accessor(header: string | string[]): AxiosHeaders;
 
-    interface ServerOptions<
-        U extends typeof WebSocket.WebSocket = typeof WebSocket.WebSocket,
-        V extends typeof IncomingMessage = typeof IncomingMessage,
-    > {
-        host?: string | undefined;
-        port?: number | undefined;
-        backlog?: number | undefined;
-        server?: HTTPServer<V> | HTTPSServer<V> | undefined;
-        verifyClient?:
-            | VerifyClientCallbackAsync<InstanceType<V>>
-            | VerifyClientCallbackSync<InstanceType<V>>
-            | undefined;
-        handleProtocols?: (protocols: Set<string>, request: InstanceType<V>) => string | false;
-        path?: string | undefined;
-        noServer?: boolean | undefined;
-        allowSynchronousEvents?: boolean | undefined;
-        autoPong?: boolean | undefined;
-        clientTracking?: boolean | undefined;
-        perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
-        maxPayload?: number | undefined;
-        skipUTF8Validation?: boolean | undefined;
-        WebSocket?: U | undefined;
-    }
+  static concat(...targets: Array<AxiosHeaders | RawAxiosHeaders | string | undefined | null>): AxiosHeaders;
 
-    interface AddressInfo {
-        address: string;
-        family: string;
-        port: number;
-    }
+  setContentType(value: ContentType, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getContentType(parser?: RegExp): RegExpExecArray | null;
+  getContentType(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasContentType(matcher?: AxiosHeaderMatcher): boolean;
 
-    // WebSocket Server
-    class Server<
-        T extends typeof WebSocket.WebSocket = typeof WebSocket.WebSocket,
-        U extends typeof IncomingMessage = typeof IncomingMessage,
-    > extends EventEmitter {
-        options: ServerOptions<T, U>;
-        path: string;
-        clients: Set<InstanceType<T>>;
+  setContentLength(value: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getContentLength(parser?: RegExp): RegExpExecArray | null;
+  getContentLength(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasContentLength(matcher?: AxiosHeaderMatcher): boolean;
 
-        constructor(options?: ServerOptions<T, U>, callback?: () => void);
+  setAccept(value: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getAccept(parser?: RegExp): RegExpExecArray | null;
+  getAccept(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasAccept(matcher?: AxiosHeaderMatcher): boolean;
 
-        address(): AddressInfo | string | null;
-        close(cb?: (err?: Error) => void): void;
-        handleUpgrade(
-            request: InstanceType<U>,
-            socket: Duplex,
-            upgradeHead: Buffer,
-            callback: (client: InstanceType<T>, request: InstanceType<U>) => void,
-        ): void;
-        shouldHandle(request: InstanceType<U>): boolean | Promise<boolean>;
+  setUserAgent(value: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getUserAgent(parser?: RegExp): RegExpExecArray | null;
+  getUserAgent(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasUserAgent(matcher?: AxiosHeaderMatcher): boolean;
 
-        // Events
-        on(
-            event: "connection",
-            cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void,
-        ): this;
-        on(event: "error", cb: (this: Server<T>, error: Error) => void): this;
-        on(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
-        on(event: "close" | "listening", cb: (this: Server<T>) => void): this;
-        on(
-            event: "wsClientError",
-            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
-        ): this;
-        on(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+  setContentEncoding(value: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getContentEncoding(parser?: RegExp): RegExpExecArray | null;
+  getContentEncoding(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasContentEncoding(matcher?: AxiosHeaderMatcher): boolean;
 
-        once(
-            event: "connection",
-            cb: (this: Server<T>, websocket: InstanceType<T>, request: InstanceType<U>) => void,
-        ): this;
-        once(event: "error", cb: (this: Server<T>, error: Error) => void): this;
-        once(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
-        once(event: "close" | "listening", cb: (this: Server<T>) => void): this;
-        once(
-            event: "wsClientError",
-            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
-        ): this;
-        once(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+  setAuthorization(value: AxiosHeaderValue, rewrite?: boolean | AxiosHeaderMatcher): AxiosHeaders;
+  getAuthorization(parser?: RegExp): RegExpExecArray | null;
+  getAuthorization(matcher?: AxiosHeaderMatcher): AxiosHeaderValue;
+  hasAuthorization(matcher?: AxiosHeaderMatcher): boolean;
 
-        off(
-            event: "connection",
-            cb: (this: Server<T>, socket: InstanceType<T>, request: InstanceType<U>) => void,
-        ): this;
-        off(event: "error", cb: (this: Server<T>, error: Error) => void): this;
-        off(event: "headers", cb: (this: Server<T>, headers: string[], request: InstanceType<U>) => void): this;
-        off(event: "close" | "listening", cb: (this: Server<T>) => void): this;
-        off(
-            event: "wsClientError",
-            cb: (this: Server<T>, error: Error, socket: Duplex, request: InstanceType<U>) => void,
-        ): this;
-        off(event: string | symbol, listener: (this: Server<T>, ...args: any[]) => void): this;
+  getSetCookie(): string[];
 
-        addListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
-        addListener(event: "error", cb: (error: Error) => void): this;
-        addListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
-        addListener(event: "close" | "listening", cb: () => void): this;
-        addListener(event: "wsClientError", cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void): this;
-        addListener(event: string | symbol, listener: (...args: any[]) => void): this;
-
-        removeListener(event: "connection", cb: (websocket: InstanceType<T>, request: InstanceType<U>) => void): this;
-        removeListener(event: "error", cb: (error: Error) => void): this;
-        removeListener(event: "headers", cb: (headers: string[], request: InstanceType<U>) => void): this;
-        removeListener(event: "close" | "listening", cb: () => void): this;
-        removeListener(
-            event: "wsClientError",
-            cb: (error: Error, socket: Duplex, request: InstanceType<U>) => void,
-        ): this;
-        removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
-    }
-
-    const WebSocketServer: typeof Server;
-    interface WebSocketServer extends Server {} // eslint-disable-line @typescript-eslint/no-empty-interface
-    const WebSocket: typeof WebSocketAlias;
-    interface WebSocket extends WebSocketAlias {} // eslint-disable-line @typescript-eslint/no-empty-interface
-
-    // WebSocket stream
-    function createWebSocketStream(websocket: WebSocket, options?: DuplexOptions): Duplex;
+  [Symbol.iterator](): IterableIterator<[string, AxiosHeaderValue]>;
 }
 
-export = WebSocket;
+type CommonRequestHeadersList = 'Accept' | 'Content-Length' | 'User-Agent' | 'Content-Encoding' | 'Authorization';
+
+type ContentType = AxiosHeaderValue | 'text/html' | 'text/plain' | 'multipart/form-data' | 'application/json' | 'application/x-www-form-urlencoded' | 'application/octet-stream';
+
+export type RawAxiosRequestHeaders = Partial<RawAxiosHeaders & {
+  [Key in CommonRequestHeadersList]: AxiosHeaderValue;
+} & {
+  'Content-Type': ContentType
+}>;
+
+export type AxiosRequestHeaders = RawAxiosRequestHeaders & AxiosHeaders;
+
+type CommonResponseHeadersList = 'Server' | 'Content-Type' | 'Content-Length' | 'Cache-Control'| 'Content-Encoding';
+
+type RawCommonResponseHeaders = {
+  [Key in CommonResponseHeadersList]: AxiosHeaderValue;
+} & {
+  "set-cookie": string[];
+};
+
+export type RawAxiosResponseHeaders = Partial<RawAxiosHeaders & RawCommonResponseHeaders>;
+
+export type AxiosResponseHeaders = RawAxiosResponseHeaders & AxiosHeaders;
+
+export interface AxiosRequestTransformer {
+  (this: InternalAxiosRequestConfig, data: any, headers: AxiosRequestHeaders): any;
+}
+
+export interface AxiosResponseTransformer {
+  (this: InternalAxiosRequestConfig, data: any, headers: AxiosResponseHeaders, status?: number): any;
+}
+
+export interface AxiosAdapter {
+  (config: InternalAxiosRequestConfig): AxiosPromise;
+}
+
+export interface AxiosBasicCredentials {
+  username: string;
+  password: string;
+}
+
+export interface AxiosProxyConfig {
+  host: string;
+  port: number;
+  auth?: AxiosBasicCredentials;
+  protocol?: string;
+}
+
+export enum HttpStatusCode {
+  Continue = 100,
+  SwitchingProtocols = 101,
+  Processing = 102,
+  EarlyHints = 103,
+  Ok = 200,
+  Created = 201,
+  Accepted = 202,
+  NonAuthoritativeInformation = 203,
+  NoContent = 204,
+  ResetContent = 205,
+  PartialContent = 206,
+  MultiStatus = 207,
+  AlreadyReported = 208,
+  ImUsed = 226,
+  MultipleChoices = 300,
+  MovedPermanently = 301,
+  Found = 302,
+  SeeOther = 303,
+  NotModified = 304,
+  UseProxy = 305,
+  Unused = 306,
+  TemporaryRedirect = 307,
+  PermanentRedirect = 308,
+  BadRequest = 400,
+  Unauthorized = 401,
+  PaymentRequired = 402,
+  Forbidden = 403,
+  NotFound = 404,
+  MethodNotAllowed = 405,
+  NotAcceptable = 406,
+  ProxyAuthenticationRequired = 407,
+  RequestTimeout = 408,
+  Conflict = 409,
+  Gone = 410,
+  LengthRequired = 411,
+  PreconditionFailed = 412,
+  PayloadTooLarge = 413,
+  UriTooLong = 414,
+  UnsupportedMediaType = 415,
+  RangeNotSatisfiable = 416,
+  ExpectationFailed = 417,
+  ImATeapot = 418,
+  MisdirectedRequest = 421,
+  UnprocessableEntity = 422,
+  Locked = 423,
+  FailedDependency = 424,
+  TooEarly = 425,
+  UpgradeRequired = 426,
+  PreconditionRequired = 428,
+  TooManyRequests = 429,
+  RequestHeaderFieldsTooLarge = 431,
+  UnavailableForLegalReasons = 451,
+  InternalServerError = 500,
+  NotImplemented = 501,
+  BadGateway = 502,
+  ServiceUnavailable = 503,
+  GatewayTimeout = 504,
+  HttpVersionNotSupported = 505,
+  VariantAlsoNegotiates = 506,
+  InsufficientStorage = 507,
+  LoopDetected = 508,
+  NotExtended = 510,
+  NetworkAuthenticationRequired = 511,
+}
+
+export type Method =
+    | 'get' | 'GET'
+    | 'delete' | 'DELETE'
+    | 'head' | 'HEAD'
+    | 'options' | 'OPTIONS'
+    | 'post' | 'POST'
+    | 'put' | 'PUT'
+    | 'patch' | 'PATCH'
+    | 'purge' | 'PURGE'
+    | 'link' | 'LINK'
+    | 'unlink' | 'UNLINK';
+
+export type ResponseType =
+    | 'arraybuffer'
+    | 'blob'
+    | 'document'
+    | 'json'
+    | 'text'
+    | 'stream'
+    | 'formdata';
+
+export type responseEncoding =
+    | 'ascii' | 'ASCII'
+    | 'ansi' | 'ANSI'
+    | 'binary' | 'BINARY'
+    | 'base64' | 'BASE64'
+    | 'base64url' | 'BASE64URL'
+    | 'hex' | 'HEX'
+    | 'latin1' | 'LATIN1'
+    | 'ucs-2' | 'UCS-2'
+    | 'ucs2' | 'UCS2'
+    | 'utf-8' | 'UTF-8'
+    | 'utf8' | 'UTF8'
+    | 'utf16le' | 'UTF16LE';
+
+export interface TransitionalOptions {
+  silentJSONParsing?: boolean;
+  forcedJSONParsing?: boolean;
+  clarifyTimeoutError?: boolean;
+}
+
+export interface GenericAbortSignal {
+  readonly aborted: boolean;
+  onabort?: ((...args: any) => any) | null;
+  addEventListener?: (...args: any) => any;
+  removeEventListener?: (...args: any) => any;
+}
+
+export interface FormDataVisitorHelpers {
+  defaultVisitor: SerializerVisitor;
+  convertValue: (value: any) => any;
+  isVisitable: (value: any) => boolean;
+}
+
+export interface SerializerVisitor {
+  (
+      this: GenericFormData,
+      value: any,
+      key: string | number,
+      path: null | Array<string | number>,
+      helpers: FormDataVisitorHelpers
+  ): boolean;
+}
+
+export interface SerializerOptions {
+  visitor?: SerializerVisitor;
+  dots?: boolean;
+  metaTokens?: boolean;
+  indexes?: boolean | null;
+}
+
+// tslint:disable-next-line
+export interface FormSerializerOptions extends SerializerOptions {
+}
+
+export interface ParamEncoder {
+  (value: any, defaultEncoder: (value: any) => any): any;
+}
+
+export interface CustomParamsSerializer {
+  (params: Record<string, any>, options?: ParamsSerializerOptions): string;
+}
+
+export interface ParamsSerializerOptions extends SerializerOptions {
+  encode?: ParamEncoder;
+  serialize?: CustomParamsSerializer;
+}
+
+type MaxUploadRate = number;
+
+type MaxDownloadRate = number;
+
+type BrowserProgressEvent = any;
+
+export interface AxiosProgressEvent {
+  loaded: number;
+  total?: number;
+  progress?: number;
+  bytes: number;
+  rate?: number;
+  estimated?: number;
+  upload?: boolean;
+  download?: boolean;
+  event?: BrowserProgressEvent;
+  lengthComputable: boolean;
+}
+
+type Milliseconds = number;
+
+type AxiosAdapterName = 'fetch' | 'xhr' | 'http' | (string & {});
+
+type AxiosAdapterConfig = AxiosAdapter | AxiosAdapterName;
+
+export type AddressFamily = 4 | 6 | undefined;
+
+export interface LookupAddressEntry {
+  address: string;
+  family?: AddressFamily;
+}
+
+export type LookupAddress = string | LookupAddressEntry;
+
+export interface AxiosRequestConfig<D = any> {
+  url?: string;
+  method?: Method | string;
+  baseURL?: string;
+  allowAbsoluteUrls?: boolean;
+  transformRequest?: AxiosRequestTransformer | AxiosRequestTransformer[];
+  transformResponse?: AxiosResponseTransformer | AxiosResponseTransformer[];
+  headers?: (RawAxiosRequestHeaders & MethodsHeaders) | AxiosHeaders;
+  params?: any;
+  paramsSerializer?: ParamsSerializerOptions | CustomParamsSerializer;
+  data?: D;
+  timeout?: Milliseconds;
+  timeoutErrorMessage?: string;
+  withCredentials?: boolean;
+  adapter?: AxiosAdapterConfig | AxiosAdapterConfig[];
+  auth?: AxiosBasicCredentials;
+  responseType?: ResponseType;
+  responseEncoding?: responseEncoding | string;
+  xsrfCookieName?: string;
+  xsrfHeaderName?: string;
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
+  onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void;
+  maxContentLength?: number;
+  validateStatus?: ((status: number) => boolean) | null;
+  maxBodyLength?: number;
+  maxRedirects?: number;
+  maxRate?: number | [MaxUploadRate, MaxDownloadRate];
+  beforeRedirect?: (options: Record<string, any>, responseDetails: {headers: Record<string, string>, statusCode: HttpStatusCode}) => void;
+  socketPath?: string | null;
+  transport?: any;
+  httpAgent?: any;
+  httpsAgent?: any;
+  proxy?: AxiosProxyConfig | false;
+  cancelToken?: CancelToken;
+  decompress?: boolean;
+  transitional?: TransitionalOptions;
+  signal?: GenericAbortSignal;
+  insecureHTTPParser?: boolean;
+  env?: {
+    FormData?: new (...args: any[]) => object;
+  };
+  formSerializer?: FormSerializerOptions;
+  family?: AddressFamily;
+  lookup?: ((hostname: string, options: object, cb: (err: Error | null, address: LookupAddress | LookupAddress[], family?: AddressFamily) => void) => void) |
+      ((hostname: string, options: object) => Promise<[address: LookupAddressEntry | LookupAddressEntry[], family?: AddressFamily] | LookupAddress>);
+  withXSRFToken?: boolean | ((config: InternalAxiosRequestConfig) => boolean | undefined);
+  fetchOptions?: Omit<RequestInit, 'body' | 'headers' | 'method' | 'signal'> | Record<string, any>;
+}
+
+// Alias
+export type RawAxiosRequestConfig<D = any> = AxiosRequestConfig<D>;
+
+export interface InternalAxiosRequestConfig<D = any> extends AxiosRequestConfig<D> {
+  headers: AxiosRequestHeaders;
+}
+
+export interface HeadersDefaults {
+  common: RawAxiosRequestHeaders;
+  delete: RawAxiosRequestHeaders;
+  get: RawAxiosRequestHeaders;
+  head: RawAxiosRequestHeaders;
+  post: RawAxiosRequestHeaders;
+  put: RawAxiosRequestHeaders;
+  patch: RawAxiosRequestHeaders;
+  options?: RawAxiosRequestHeaders;
+  purge?: RawAxiosRequestHeaders;
+  link?: RawAxiosRequestHeaders;
+  unlink?: RawAxiosRequestHeaders;
+}
+
+export interface AxiosDefaults<D = any> extends Omit<AxiosRequestConfig<D>, 'headers'> {
+  headers: HeadersDefaults;
+}
+
+export interface CreateAxiosDefaults<D = any> extends Omit<AxiosRequestConfig<D>, 'headers'> {
+  headers?: RawAxiosRequestHeaders | AxiosHeaders | Partial<HeadersDefaults>;
+}
+
+export interface AxiosResponse<T = any, D = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: RawAxiosResponseHeaders | AxiosResponseHeaders;
+  config: InternalAxiosRequestConfig<D>;
+  request?: any;
+}
+
+export class AxiosError<T = unknown, D = any> extends Error {
+  constructor(
+      message?: string,
+      code?: string,
+      config?: InternalAxiosRequestConfig<D>,
+      request?: any,
+      response?: AxiosResponse<T, D>
+  );
+
+  config?: InternalAxiosRequestConfig<D>;
+  code?: string;
+  request?: any;
+  response?: AxiosResponse<T, D>;
+  isAxiosError: boolean;
+  status?: number;
+  toJSON: () => object;
+  cause?: Error;
+  static from<T = unknown, D = any>(
+    error: Error | unknown,
+    code?: string,
+    config?: InternalAxiosRequestConfig<D>,
+    request?: any,
+    response?: AxiosResponse<T, D>,
+    customProps?: object,
+): AxiosError<T, D>;
+  static readonly ERR_FR_TOO_MANY_REDIRECTS = "ERR_FR_TOO_MANY_REDIRECTS";
+  static readonly ERR_BAD_OPTION_VALUE = "ERR_BAD_OPTION_VALUE";
+  static readonly ERR_BAD_OPTION = "ERR_BAD_OPTION";
+  static readonly ERR_NETWORK = "ERR_NETWORK";
+  static readonly ERR_DEPRECATED = "ERR_DEPRECATED";
+  static readonly ERR_BAD_RESPONSE = "ERR_BAD_RESPONSE";
+  static readonly ERR_BAD_REQUEST = "ERR_BAD_REQUEST";
+  static readonly ERR_NOT_SUPPORT = "ERR_NOT_SUPPORT";
+  static readonly ERR_INVALID_URL = "ERR_INVALID_URL";
+  static readonly ERR_CANCELED = "ERR_CANCELED";
+  static readonly ECONNABORTED = "ECONNABORTED";
+  static readonly ETIMEDOUT = "ETIMEDOUT";
+}
+
+export class CanceledError<T> extends AxiosError<T> {
+}
+
+export type AxiosPromise<T = any> = Promise<AxiosResponse<T>>;
+
+export interface CancelStatic {
+  new (message?: string): Cancel;
+}
+
+export interface Cancel {
+  message: string | undefined;
+}
+
+export interface Canceler {
+  (message?: string, config?: AxiosRequestConfig, request?: any): void;
+}
+
+export interface CancelTokenStatic {
+  new (executor: (cancel: Canceler) => void): CancelToken;
+  source(): CancelTokenSource;
+}
+
+export interface CancelToken {
+  promise: Promise<Cancel>;
+  reason?: Cancel;
+  throwIfRequested(): void;
+}
+
+export interface CancelTokenSource {
+  token: CancelToken;
+  cancel: Canceler;
+}
+
+export interface AxiosInterceptorOptions {
+  synchronous?: boolean;
+  runWhen?: (config: InternalAxiosRequestConfig) => boolean;
+}
+
+type AxiosRequestInterceptorUse<T> = (onFulfilled?: ((value: T) => T | Promise<T>) | null, onRejected?: ((error: any) => any) | null, options?: AxiosInterceptorOptions) => number;
+
+type AxiosResponseInterceptorUse<T> = (onFulfilled?: ((value: T) => T | Promise<T>) | null, onRejected?: ((error: any) => any) | null) => number;
+
+export interface AxiosInterceptorManager<V> {
+  use: V extends AxiosResponse ? AxiosResponseInterceptorUse<V> : AxiosRequestInterceptorUse<V>;
+  eject(id: number): void;
+  clear(): void;
+}
+
+export class Axios {
+  constructor(config?: AxiosRequestConfig);
+  defaults: AxiosDefaults;
+  interceptors: {
+    request: AxiosInterceptorManager<InternalAxiosRequestConfig>;
+    response: AxiosInterceptorManager<AxiosResponse>;
+  };
+  getUri(config?: AxiosRequestConfig): string;
+  request<T = any, R = AxiosResponse<T>, D = any>(config: AxiosRequestConfig<D>): Promise<R>;
+  get<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+  delete<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+  head<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+  options<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+  post<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  put<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  patch<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  postForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  putForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+  patchForm<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+}
+
+export interface AxiosInstance extends Axios {
+  <T = any, R = AxiosResponse<T>, D = any>(config: AxiosRequestConfig<D>): Promise<R>;
+  <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+
+  create(config?: CreateAxiosDefaults): AxiosInstance;
+  defaults: Omit<AxiosDefaults, 'headers'> & {
+    headers: HeadersDefaults & {
+      [key: string]: AxiosHeaderValue
+    }
+  };
+}
+
+export interface GenericFormData {
+  append(name: string, value: any, options?: any): any;
+}
+
+export interface GenericHTMLFormElement {
+  name: string;
+  method: string;
+  submit(): void;
+}
+
+export function getAdapter(adapters: AxiosAdapterConfig | AxiosAdapterConfig[] | undefined): AxiosAdapter;
+
+export function toFormData(sourceObj: object, targetFormData?: GenericFormData, options?: FormSerializerOptions): GenericFormData;
+
+export function formToJSON(form: GenericFormData|GenericHTMLFormElement): object;
+
+export function isAxiosError<T = any, D = any>(payload: any): payload is AxiosError<T, D>;
+
+export function spread<T, R>(callback: (...args: T[]) => R): (array: T[]) => R;
+
+export function isCancel(value: any): value is Cancel;
+
+export function all<T>(values: Array<T | Promise<T>>): Promise<T[]>;
+
+export function mergeConfig<D = any>(config1: AxiosRequestConfig<D>, config2: AxiosRequestConfig<D>): AxiosRequestConfig<D>;
+
+export interface AxiosStatic extends AxiosInstance {
+  Cancel: CancelStatic;
+  CancelToken: CancelTokenStatic;
+  Axios: typeof Axios;
+  AxiosError: typeof AxiosError;
+  HttpStatusCode: typeof HttpStatusCode;
+  readonly VERSION: string;
+  isCancel: typeof isCancel;
+  all: typeof all;
+  spread: typeof spread;
+  isAxiosError: typeof isAxiosError;
+  toFormData: typeof toFormData;
+  formToJSON: typeof formToJSON;
+  getAdapter: typeof getAdapter;
+  CanceledError: typeof CanceledError;
+  AxiosHeaders: typeof AxiosHeaders;
+  mergeConfig: typeof mergeConfig;
+}
+
+declare const axios: AxiosStatic;
+
+export default axios;
