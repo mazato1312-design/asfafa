@@ -1,3 +1,5 @@
+'use strict';
+
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
@@ -182,6 +184,11 @@ var DiscordSnowflake = new Snowflake(1420070400000n);
 // src/lib/TwitterSnowflake.ts
 var TwitterSnowflake = new Snowflake(1288834974657n);
 
-export { DiscordSnowflake, MaximumIncrement, MaximumProcessId, MaximumWorkerId, Snowflake, TwitterSnowflake };
+exports.DiscordSnowflake = DiscordSnowflake;
+exports.MaximumIncrement = MaximumIncrement;
+exports.MaximumProcessId = MaximumProcessId;
+exports.MaximumWorkerId = MaximumWorkerId;
+exports.Snowflake = Snowflake;
+exports.TwitterSnowflake = TwitterSnowflake;
 //# sourceMappingURL=out.js.map
-//# sourceMappingURL=index.mjs.map
+//# sourceMappingURL=index.cjs.map

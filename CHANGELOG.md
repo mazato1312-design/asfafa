@@ -2,189 +2,311 @@
 
 All notable changes to this project will be documented in this file.
 
-# [@discordjs/collection@1.5.3](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.2...@discordjs/collection@1.5.3) - (2023-08-17)
+# [@sapphire/snowflake@3.5.3](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.5.3...@sapphire/snowflake@3.5.3) - (2024-01-19)
 
-## Documentation
+## 🐛 Bug Fixes
 
-- Update Node.js requirement to 16.11.0 (#9764) ([188877c](https://github.com/discordjs/discord.js/commit/188877c50af70f0d5cffb246620fa277435c6ce6))
+- Fixed commonjs typings export mapping (#707) ([216ff02](https://github.com/sapphiredev/utilities/commit/216ff0260d63a9590357f9a5069f1ae2b34eaf5d))
 
-# [@discordjs/collection@1.5.2](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.1...@discordjs/collection@1.5.2) - (2023-07-31)
+# [@sapphire/snowflake@3.5.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.5.2...@sapphire/snowflake@3.5.2) - (2023-12-04)
 
-## Refactor
+## 🐛 Bug Fixes
 
-- **collection:** Reduce `reduce`'s code (#9581) ([b85a3f2](https://github.com/discordjs/discord.js/commit/b85a3f2ddee8fc5974749b95fc07389a03093df2))
+- **snowflake:** Properly split CJS, ESM and IIFE ([2a1fdde](https://github.com/sapphiredev/utilities/commit/2a1fddefe9fb3e07e7ab9eaee1631ab7e82ef1b3))
+- Update export mapping for proper ESM/CJS split ([dd0cff8](https://github.com/sapphiredev/utilities/commit/dd0cff8e9b03a15812f25f7a1180501a92422629))
+- **deps:** Update all non-major dependencies (#607) ([9cc8bd0](https://github.com/sapphiredev/utilities/commit/9cc8bd0d4b5d650deab2c913e6c3d713861bae28))
 
-# [@discordjs/collection@1.5.1](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.0...@discordjs/collection@1.5.1) - (2023-05-01)
+## 🧪 Testing
 
-## Bug Fixes
+- Update vitest to coverage v8 ([a4bc6e4](https://github.com/sapphiredev/utilities/commit/a4bc6e4f24ea60143a150ecc76fda6484f172ab9))
 
-- Fix external links (#9313) ([a7425c2](https://github.com/discordjs/discord.js/commit/a7425c29c4f23f1b31f4c6a463107ca9eb7fd7e2))
+# [@sapphire/snowflake@3.5.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.5.0...@sapphire/snowflake@3.5.1) - (2023-05-12)
 
-## Documentation
+## 🏠 Refactor
 
-- Generate static imports for types with api-extractor ([98a76db](https://github.com/discordjs/discord.js/commit/98a76db482879f79d6bb2fb2e5fc65ac2c34e2d9))
+- **snowflake:** Handle out-of-bounds `increment` correctly (#596) ([b5276d7](https://github.com/sapphiredev/utilities/commit/b5276d7372c33356975a302bafb5ae8aba604431))
 
-# [@discordjs/collection@1.5.2](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.1...@discordjs/collection@1.5.2) - (2023-07-31)
+# [@sapphire/snowflake@3.5.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.4.3...@sapphire/snowflake@3.5.0) - (2023-05-10)
 
-## Refactor
+## 🚀 Features
 
-- **collection:** Reduce `reduce`'s code (#9581) ([b85a3f2](https://github.com/discordjs/discord.js/commit/b85a3f2ddee8fc5974749b95fc07389a03093df2))
+- **snowflake:** Expose `processId` and `workerId` (#595) ([b873c1c](https://github.com/sapphiredev/utilities/commit/b873c1cc3b30cb54d710a49f7618e125ac1132ad))
 
-# [@discordjs/collection@1.5.1](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.0...@discordjs/collection@1.5.1) - (2023-05-01)
+# [@sapphire/snowflake@3.4.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.4.1...@sapphire/snowflake@3.4.2) - (2023-04-12)
 
-## Bug Fixes
+## 🏠 Refactor
 
-- Fix external links (#9313) ([a7425c2](https://github.com/discordjs/discord.js/commit/a7425c29c4f23f1b31f4c6a463107ca9eb7fd7e2))
+- **Snowflake:** Simplify `compare` logic (#578) ([886254e](https://github.com/sapphiredev/utilities/commit/886254eea2f0cc5e8f63d015acffaf0e61489357))
 
-## Documentation
+# [@sapphire/snowflake@3.4.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.4.0...@sapphire/snowflake@3.4.1) - (2023-04-10)
 
-- Generate static imports for types with api-extractor ([98a76db](https://github.com/discordjs/discord.js/commit/98a76db482879f79d6bb2fb2e5fc65ac2c34e2d9))
+## 🐛 Bug Fixes
 
-# [@discordjs/collection@1.5.1](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.5.0...@discordjs/collection@1.5.1) - (2023-05-01)
+- **snowflake:** Ensure strings are never compared with bigints ([22199a5](https://github.com/sapphiredev/utilities/commit/22199a5aa0c6150f46e01bfbe328deecb9f818ba))
+- **deps:** Update all non-major dependencies (#577) ([291dd67](https://github.com/sapphiredev/utilities/commit/291dd6783e57d8f075ce566218ba076ef6c4bbbd))
+- **deps:** Update all non-major dependencies (#545) ([40ca040](https://github.com/sapphiredev/utilities/commit/40ca040a21d8a0949682051a3a974538183a400e))
+- **deps:** Update all non-major dependencies (#544) ([cc78f17](https://github.com/sapphiredev/utilities/commit/cc78f17390c7f3db08af92bf46a5a70a9c11dd5f))
 
-## Bug Fixes
+## 🧪 Testing
 
-- Fix external links (#9313) ([a7425c2](https://github.com/discordjs/discord.js/commit/a7425c29c4f23f1b31f4c6a463107ca9eb7fd7e2))
+- Cleanup tests ([aec1bb2](https://github.com/sapphiredev/utilities/commit/aec1bb290d0f3c00a1ae4f4c86302ebbb161d348))
 
-## Documentation
+# [@sapphire/snowflake@3.4.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.3.0...@sapphire/snowflake@3.4.0) - (2022-12-27)
 
-- Generate static imports for types with api-extractor ([98a76db](https://github.com/discordjs/discord.js/commit/98a76db482879f79d6bb2fb2e5fc65ac2c34e2d9))
+## 🐛 Bug Fixes
 
-# [@discordjs/collection@1.5.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.4.0...@discordjs/collection@1.5.0) - (2023-04-01)
+- **deps:** Update all non-major dependencies (#532) ([8033d1f](https://github.com/sapphiredev/utilities/commit/8033d1ff7a5a1974134c61f424f171cccb2915e1))
 
-## Bug Fixes
+## 📝 Documentation
 
-- **scripts:** Accessing tsComment ([d8d5f31](https://github.com/discordjs/discord.js/commit/d8d5f31d3927fd1de62f1fa3a1a6e454243ad87b))
+- Add @06000208 as a contributor ([fa3349e](https://github.com/sapphiredev/utilities/commit/fa3349e55ce4ad008785211dec7bf8e2b5d933df))
 
-## Features
+## 🚀 Features
 
-- **website:** Render syntax and mdx on the server (#9086) ([ee5169e](https://github.com/discordjs/discord.js/commit/ee5169e0aadd7bbfcd752aae614ec0f69602b68b))
+- **snowflake:** Added `Snowflake.compare` (#531) ([6accd6d](https://github.com/sapphiredev/utilities/commit/6accd6d15eab12e312034f8ef43cff032835c972))
 
-## Refactor
+# [@sapphire/snowflake@3.3.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.2.2...@sapphire/snowflake@3.3.0) - (2022-12-03)
 
-- **collection:** Fix/silence linter warnings (#9266) ([d6f4e60](https://github.com/discordjs/discord.js/commit/d6f4e60efd1a1796fc84dbbfbac4f9790e480a1c))
+## 🏠 Refactor
 
-# [@discordjs/collection@1.4.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.3.0...@discordjs/collection@1.4.0) - (2023-03-12)
+- Split `@sapphire/time-utilities` into 4 sub-packages (#462) ([574299a](https://github.com/sapphiredev/utilities/commit/574299a99e658f6500a2a7efa587a0919b2d1313))
 
-## Documentation
+## 🐛 Bug Fixes
 
-- Fix version export (#9049) ([8b70f49](https://github.com/discordjs/discord.js/commit/8b70f497a1207e30edebdecd12b926c981c13d28))
+- **snowflake:** TwitterSnowflake using incorrect epoch (#522) ([4ad4117](https://github.com/sapphiredev/utilities/commit/4ad41170488161b2998bd72da5a8b7fea10539a0))
+- **deps:** Update all non-major dependencies (#514) ([21b07d5](https://github.com/sapphiredev/utilities/commit/21b07d5db529a0d982647a60de98e46f36f1ac93))
+- **deps:** Update all non-major dependencies (#505) ([6178296](https://github.com/sapphiredev/utilities/commit/617829649e1e4deeee02b14533b5377cd5bc1fb3))
+- **deps:** Update all non-major dependencies (#466) ([dc08606](https://github.com/sapphiredev/utilities/commit/dc08606a97154e47c65536123ac5f8b1262f7bd2))
+- **deps:** Update all non-major dependencies ([e20f299](https://github.com/sapphiredev/utilities/commit/e20f29906e83cee000aaba9c6827e3bec5173d28))
+- **deps:** Update all non-major dependencies ([2308bd7](https://github.com/sapphiredev/utilities/commit/2308bd74356b6b2e0c12995b25f4d8ade4803fe9))
+- **deps:** Update all non-major dependencies ([84af0db](https://github.com/sapphiredev/utilities/commit/84af0db2db749223b036aa99fe19a2e9af5681c6))
+- **deps:** Update all non-major dependencies ([50cd8de](https://github.com/sapphiredev/utilities/commit/50cd8dea593b6f5ae75571209456b3421e2ca59a))
 
-## Features
+## 📝 Documentation
 
-- **website:** Add support for source file links (#9048) ([f6506e9](https://github.com/discordjs/discord.js/commit/f6506e99c496683ee0ab67db0726b105b929af38))
+- Add @didinele as a contributor ([42ef7b6](https://github.com/sapphiredev/utilities/commit/42ef7b656c48fd0e720119db1d622c8bba2791e9))
+- Add @goestav as a contributor ([0e56a92](https://github.com/sapphiredev/utilities/commit/0e56a92a4e2d0942bfa207f81a8cb03b32312034))
+- Add @CitTheDev as a contributor ([34169ea](https://github.com/sapphiredev/utilities/commit/34169eae1dc0476ccf5a6c4f36e28602a204829e))
+- Add @legendhimslef as a contributor ([059b6f1](https://github.com/sapphiredev/utilities/commit/059b6f1ab5362d46d58624d06c1aa39192b0716f))
+- Add @r-priyam as a contributor ([fb278ba](https://github.com/sapphiredev/utilities/commit/fb278bacf627ec6fc88752eafeb12df5f3177a2c))
+- Change name of @kyranet (#451) ([df4fdef](https://github.com/sapphiredev/utilities/commit/df4fdefce18659975a4ebc224723638507d02d35))
+- Update @RealShadowNova as a contributor ([a869ba0](https://github.com/sapphiredev/utilities/commit/a869ba0abfad041610b9115187d426aebe671af6))
+- Add @muchnameless as a contributor ([a1221fe](https://github.com/sapphiredev/utilities/commit/a1221fea68506e99591d5d00ec552a07c26833f9))
+- Add @enxg as a contributor ([d2382f0](https://github.com/sapphiredev/utilities/commit/d2382f04e3909cb4ad11798a0a10e683f6cf5383))
+- Add @EvolutionX-10 as a contributor ([efc3a32](https://github.com/sapphiredev/utilities/commit/efc3a320a72ae258996dd62866d206c33f8d4961))
+- Add @MajesticString as a contributor ([295b3e9](https://github.com/sapphiredev/utilities/commit/295b3e9849a4b0fe64074bae02f6426378a303c3))
+- Add @Mzato0001 as a contributor ([c790ef2](https://github.com/sapphiredev/utilities/commit/c790ef25df2d7e22888fa9f8169167aa555e9e19))
 
-## Refactor
+## 🚀 Features
 
-- Compare with `undefined` directly (#9191) ([869153c](https://github.com/discordjs/discord.js/commit/869153c3fdf155783e7c0ecebd3627b087c3a026))
+- **utilities:** Add possibility to import single functions by appending them to the import path. (#454) ([374c145](https://github.com/sapphiredev/utilities/commit/374c145a5dd329cfc1a867ed6720abf408683a88))
 
-# [@discordjs/collection@1.3.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.2.0...@discordjs/collection@1.3.0) - (2022-11-28)
+## 🧪 Testing
 
-## Bug Fixes
+- Migrate to vitest (#380) ([075ec73](https://github.com/sapphiredev/utilities/commit/075ec73c7a8e3374fad3ada612d37eb4ac36ec8d))
 
-- Pin @types/node version ([9d8179c](https://github.com/discordjs/discord.js/commit/9d8179c6a78e1c7f9976f852804055964d5385d4))
-
-## Features
-
-- Add `Collection#subtract()` (#8393) ([291f36c](https://github.com/discordjs/discord.js/commit/291f36cd736b5dea058145a1335bf7c78ec1d81d))
-
-# [@discordjs/collection@1.2.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.1.0...@discordjs/collection@1.2.0) - (2022-10-08)
-
-## Bug Fixes
-
-- Footer / sidebar / deprecation alert ([ba3e0ed](https://github.com/discordjs/discord.js/commit/ba3e0ed348258fe8e51eefb4aa7379a1230616a9))
-
-## Documentation
-
-- Change name (#8604) ([dd5a089](https://github.com/discordjs/discord.js/commit/dd5a08944c258a847fc4377f1d5e953264ab47d0))
-- Remove xml tag from collection#find (#8550) ([4032457](https://github.com/discordjs/discord.js/commit/40324574ebea9894cadcc967e0db0e4e21d62768))
-
-## Features
-
-- Web-components (#8715) ([0ac3e76](https://github.com/discordjs/discord.js/commit/0ac3e766bd9dbdeb106483fa4bb085d74de346a2))
-
-## Refactor
-
-- Website components (#8600) ([c334157](https://github.com/discordjs/discord.js/commit/c3341570d983aea9ecc419979d5a01de658c9d67))
-- Use `eslint-config-neon` for packages. (#8579) ([edadb9f](https://github.com/discordjs/discord.js/commit/edadb9fe5dfd9ff51a3cfc9b25cb242d3f9f5241))
-
-## Typings
-
-- **Collection:** Make fn return type unknown (#8676) ([822b7f2](https://github.com/discordjs/discord.js/commit/822b7f234af053c8f917b0a998b82abfccd33801))
-
-# [@discordjs/collection@1.1.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@1.0.1...@discordjs/collection@1.1.0) - (2022-08-22)
+# [@sapphire/snowflake@3.2.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.2.1...@sapphire/snowflake@3.2.2) - (2022-04-24)
 
 ## Bug Fixes
 
-- Use proper format for `@link` text (#8384) ([2655639](https://github.com/discordjs/discord.js/commit/26556390a3800e954974a00c1328ff47d3e67e9a))
+- Fix typo (#333) ([ae2f257](https://github.com/sapphiredev/utilities/commit/ae2f25766d5985735f2d9b257eebd27cdc8a7c52))
 
 ## Documentation
 
-- Fence examples in codeblocks ([193b252](https://github.com/discordjs/discord.js/commit/193b252672440a860318d3c2968aedd9cb88e0ce))
-- Use link tags (#8382) ([5494791](https://github.com/discordjs/discord.js/commit/549479131318c659f86f0eb18578d597e22522d3))
+- Add @NotKaskus as a contributor ([00da8f1](https://github.com/sapphiredev/utilities/commit/00da8f199137b9277119823f322d1f2d168d928a))
+- Add @imranbarbhuiya as a contributor ([fb674c2](https://github.com/sapphiredev/utilities/commit/fb674c2c5594d41e71662263553dcb4bac9e37f4))
+- Add @axisiscool as a contributor ([ce1aa31](https://github.com/sapphiredev/utilities/commit/ce1aa316871a88d3663efbdf2a42d3d8dfe6a27f))
+- Add @dhruv-kaushikk as a contributor ([ebbf43f](https://github.com/sapphiredev/utilities/commit/ebbf43f63617daba96e72c50a234bf8b64f6ddc4))
+- Add @Commandtechno as a contributor ([f1d69fa](https://github.com/sapphiredev/utilities/commit/f1d69fabe1ee0abe4be08b19e63dbec03102f7ce))
+- Fix typedoc causing OOM crashes ([63ba41c](https://github.com/sapphiredev/utilities/commit/63ba41c4b6678554b1c7043a22d3296db4f59360))
 
-## Features
+## [3.2.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.2.0...@sapphire/snowflake@3.2.1) (2022-04-01)
 
-- **website:** Show `constructor` information (#8540) ([e42fd16](https://github.com/discordjs/discord.js/commit/e42fd1636973b10dd7ed6fb4280ee1a4a8f82007))
-- **website:** Show descriptions for `@typeParam` blocks (#8523) ([e475b63](https://github.com/discordjs/discord.js/commit/e475b63f257f6261d73cb89fee9ecbcdd84e2a6b))
+**Note:** Version bump only for package @sapphire/snowflake
 
-## Refactor
+# [3.2.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.1.0...@sapphire/snowflake@3.2.0) (2022-03-06)
 
-- **website:** Adjust typography (#8503) ([0f83402](https://github.com/discordjs/discord.js/commit/0f834029850d2448981596cf082ff59917018d66))
-- Docs design (#8487) ([4ab1d09](https://github.com/discordjs/discord.js/commit/4ab1d09997a18879a9eb9bda39df6f15aa22557e))
+### Bug Fixes
 
-# [@discordjs/collection@0.8.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@0.7.0...@discordjs/collection@0.8.0) - (2022-07-17)
+-   **snowflake:** fixed the examples for `DiscordSnowflake` and `TwitterSnowflake` ([#282](https://github.com/sapphiredev/utilities/issues/282)) ([2e5ed7f](https://github.com/sapphiredev/utilities/commit/2e5ed7fdadccf261967c45f73d0dc78e2497eed3))
 
-## Bug Fixes
+### Features
 
-- **Collection:** Make error messages consistent (#8224) ([5bd6b28](https://github.com/discordjs/discord.js/commit/5bd6b28b3ebfced1cb9d23e83bd7c0def7a12404))
-- Check for function type (#8064) ([3bb9c0e](https://github.com/discordjs/discord.js/commit/3bb9c0e5c37311044ff41761b572ac4f91cda57c))
+-   allow module: NodeNext ([#306](https://github.com/sapphiredev/utilities/issues/306)) ([9dc6dd6](https://github.com/sapphiredev/utilities/commit/9dc6dd619efab879bb2b0b3c9e64304e10a67ed6))
+-   **ts-config:** add multi-config structure ([#281](https://github.com/sapphiredev/utilities/issues/281)) ([b5191d7](https://github.com/sapphiredev/utilities/commit/b5191d7f2416dc5838590c4ff221454925553e37))
 
-## Documentation
+# [3.1.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.0.1...@sapphire/snowflake@3.1.0) (2022-01-28)
 
-- Add codecov coverage badge to readmes (#8226) ([f6db285](https://github.com/discordjs/discord.js/commit/f6db285c073898a749fe4591cbd4463d1896daf5))
+### Features
 
-## Features
+-   change build system to tsup ([#270](https://github.com/sapphiredev/utilities/issues/270)) ([365a53a](https://github.com/sapphiredev/utilities/commit/365a53a5517a01a0926cf28a83c96b63f32ed9f8))
 
-- Codecov (#8219) ([f10f4cd](https://github.com/discordjs/discord.js/commit/f10f4cdcd88ca6be7ec735ed3a415ba13da83db0))
-- **docgen:** Update typedoc ([b3346f4](https://github.com/discordjs/discord.js/commit/b3346f4b9b3d4f96443506643d4631dc1c6d7b21))
-- Website (#8043) ([127931d](https://github.com/discordjs/discord.js/commit/127931d1df7a2a5c27923c2f2151dbf3824e50cc))
-- **docgen:** Typescript support ([3279b40](https://github.com/discordjs/discord.js/commit/3279b40912e6aa61507bedb7db15a2b8668de44b))
-- Docgen package (#8029) ([8b979c0](https://github.com/discordjs/discord.js/commit/8b979c0245c42fd824d8e98745ee869f5360fc86))
-- Use vitest instead of jest for more speed ([8d8e6c0](https://github.com/discordjs/discord.js/commit/8d8e6c03decd7352a2aa180f6e5bc1a13602539b))
-- Add scripts package for locally used scripts ([f2ae1f9](https://github.com/discordjs/discord.js/commit/f2ae1f9348bfd893332a9060f71a8a5f272a1b8b))
+## [3.0.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@3.0.0...@sapphire/snowflake@3.0.1) (2022-01-10)
 
-## Refactor
+**Note:** Version bump only for package @sapphire/snowflake
 
-- **collection:** Remove `default` property (#8055) ([c8f1690](https://github.com/discordjs/discord.js/commit/c8f1690896f55f06e05a83704262783cfc2bb91d))
-- **collection:** Remove default export (#8053) ([16810f3](https://github.com/discordjs/discord.js/commit/16810f3e410bf35ed7e6e7412d517ea74c792c5d))
-- Move all the config files to root (#8033) ([769ea0b](https://github.com/discordjs/discord.js/commit/769ea0bfe78c4f1d413c6b397c604ffe91e39c6a))
+# [3.0.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.1.4...@sapphire/snowflake@3.0.0) (2021-12-08)
 
-## Testing
+### Bug Fixes
 
-- **collection:** Improve coverage (#8222) ([a51f721](https://github.com/discordjs/discord.js/commit/a51f7215eca67a0f46fba8b2d706f7ec6f6dc228))
+-   **snowflake:** remove env-based defaults ([#232](https://github.com/sapphiredev/utilities/issues/232)) ([10408e4](https://github.com/sapphiredev/utilities/commit/10408e4d3677e91490d967c3d89bf9575946090b))
 
-# [@discordjs/collection@0.7.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@0.6.0...@discordjs/collection@0.7.0) - (2022-06-04)
+### Features
 
-## Styling
+-   **Snowflake:** rework entire package ([#231](https://github.com/sapphiredev/utilities/issues/231)) ([1d02f1a](https://github.com/sapphiredev/utilities/commit/1d02f1a2f520efcbc194c3992af593d0e493873b))
 
-- Cleanup tests and tsup configs ([6b8ef20](https://github.com/discordjs/discord.js/commit/6b8ef20cb3af5b5cfd176dd0aa0a1a1e98551629))
+### BREAKING CHANGES
 
-# [@discordjs/collection@0.6.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@0.5.0...@discordjs/collection@0.6.0) - (2022-04-17)
+-   **Snowflake:** Renamed `processID` to `processId`
+-   **Snowflake:** Renamed `workerID` to `workerId`
+-   **Snowflake:** `workerId` now defaults to 0n instead of 1n
+-   **Snowflake:** `DiscordSnowflake` is not longer a class, but a constructed Snowflake
+-   **Snowflake:** `TwitterSnowflake` is not longer a class, but a constructed Snowflake
 
-## Features
+## [2.1.4](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.1.3...@sapphire/snowflake@2.1.4) (2021-11-06)
 
-- Add support for module: NodeNext in TS and ESM (#7598) ([8f1986a](https://github.com/discordjs/discord.js/commit/8f1986a6aa98365e09b00e84ad5f9f354ab61f3d))
-- **builders:** Add attachment command option type (#7203) ([ae0f35f](https://github.com/discordjs/discord.js/commit/ae0f35f51d68dfa5a7dc43d161ef9365171debdb))
-- **Collection:** Add merging functions (#7299) ([e4bd07b](https://github.com/discordjs/discord.js/commit/e4bd07b2394f227ea06b72eb6999de9ab3127b25))
+**Note:** Version bump only for package @sapphire/snowflake
 
-# [@discordjs/collection@0.5.0](https://github.com/discordjs/discord.js/compare/@discordjs/collection@0.4.0...@discordjs/collection@0.5.0) - (2022-01-24)
+## [2.1.3](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.1.2...@sapphire/snowflake@2.1.3) (2021-10-26)
 
-## Refactor
+**Note:** Version bump only for package @sapphire/snowflake
 
-- Make `intersect` perform a true intersection (#7211) ([d8efba2](https://github.com/discordjs/discord.js/commit/d8efba24e09aa2a8dbf028fc57a561a56e7833fd))
+## [2.1.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.1.1...@sapphire/snowflake@2.1.2) (2021-10-17)
 
-## Typings
+### Bug Fixes
 
-- Add `ReadonlyCollection` (#7245) ([db25f52](https://github.com/discordjs/discord.js/commit/db25f529b26d7c819c1c42ad3e26c2263ea2da0e))
-- **Collection:** Union types on `intersect` and `difference` (#7196) ([1f9b922](https://github.com/discordjs/discord.js/commit/1f9b9225f2066e9cc66c3355417139fd25cc403c))
+-   allow more node & npm versions in engines field ([5977d2a](https://github.com/sapphiredev/utilities/commit/5977d2a30a4b2cfdf84aff3f33af03ffde1bbec5))
+
+## [2.1.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.1.0...@sapphire/snowflake@2.1.1) (2021-10-11)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+# [2.1.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@2.0.0...@sapphire/snowflake@2.1.0) (2021-10-04)
+
+### Bug Fixes
+
+-   **snowflake:** fixed snowflake generating duplicate IDs ([#166](https://github.com/sapphiredev/utilities/issues/166)) ([f0cf4ad](https://github.com/sapphiredev/utilities/commit/f0cf4ad6bc0b8b2447499ca36581d2b453e52715))
+
+### Features
+
+-   **snowflake:** set minimum NodeJS to v14 ([11a61c7](https://github.com/sapphiredev/utilities/commit/11a61c72bc29e683f9a4492815db3db094103bbc))
+
+# [2.0.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.6...@sapphire/snowflake@2.0.0) (2021-07-17)
+
+### Code Refactoring
+
+-   **rateLimits:** rewrite all of it ([#130](https://github.com/sapphiredev/utilities/issues/130)) ([320778c](https://github.com/sapphiredev/utilities/commit/320778ca65cbf3591bd1ce0b1f2eb430693eef9a))
+
+### BREAKING CHANGES
+
+-   **rateLimits:** Removed `Bucket`
+
+## [1.3.6](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.5...@sapphire/snowflake@1.3.6) (2021-07-11)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.3.5](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.4...@sapphire/snowflake@1.3.5) (2021-06-27)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.3.4](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.3...@sapphire/snowflake@1.3.4) (2021-06-19)
+
+### Bug Fixes
+
+-   **doc:** change `[@link](https://github.com/link)` to `[@linkplain](https://github.com/linkplain)` for support in VSCode IntelliSense ([703d460](https://github.com/sapphiredev/utilities/commit/703d4605b547a8787aff62d6f1054ea26dfd9d1c))
+-   **docs:** update-tsdoc-for-vscode-may-2021 ([#126](https://github.com/sapphiredev/utilities/issues/126)) ([f8581bf](https://github.com/sapphiredev/utilities/commit/f8581bfe97a1b2f8aac3a3d3ed342d8ba92d730b))
+
+## [1.3.3](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.2...@sapphire/snowflake@1.3.3) (2021-06-06)
+
+### Bug Fixes
+
+-   remove peer deps, update dev deps, update READMEs ([#124](https://github.com/sapphiredev/utilities/issues/124)) ([67256ed](https://github.com/sapphiredev/utilities/commit/67256ed43b915b02a8b5c68230ba82d6210c5032))
+-   **snowflake:** fixed parsing for timestamps as Date objects ([c17a515](https://github.com/sapphiredev/utilities/commit/c17a515b02931cf778ca69913132e8d4558504a1))
+
+## [1.3.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.1...@sapphire/snowflake@1.3.2) (2021-05-20)
+
+### Bug Fixes
+
+-   **snowflake:** mark package as side effect free ([6a9bafc](https://github.com/sapphiredev/utilities/commit/6a9bafc24caba4b0ebbdd6896ac245ae6d60dede))
+
+## [1.3.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.3.0...@sapphire/snowflake@1.3.1) (2021-05-02)
+
+### Bug Fixes
+
+-   drop the `www.` from the SapphireJS URL ([494d89f](https://github.com/sapphiredev/utilities/commit/494d89ffa04f78c195b93d7905b3232884f7d7e2))
+-   update all the SapphireJS URLs from `.com` to `.dev` ([f59b46d](https://github.com/sapphiredev/utilities/commit/f59b46d1a0ebd39cad17b17d71cd3b9da808d5fd))
+
+# [1.3.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.8...@sapphire/snowflake@1.3.0) (2021-04-21)
+
+### Features
+
+-   add @sapphire/embed-jsx ([#100](https://github.com/sapphiredev/utilities/issues/100)) ([7277a23](https://github.com/sapphiredev/utilities/commit/7277a236015236ed8e81b7882875410facc4ce17))
+
+## [1.2.8](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.7...@sapphire/snowflake@1.2.8) (2021-04-19)
+
+### Bug Fixes
+
+-   change all Sapphire URLs from "project"->"community" & use our domain where applicable 👨‍🌾🚜 ([#102](https://github.com/sapphiredev/utilities/issues/102)) ([835b408](https://github.com/sapphiredev/utilities/commit/835b408e8e57130c3787aca2e32613346ff23e4d))
+
+## [1.2.7](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.6...@sapphire/snowflake@1.2.7) (2021-04-03)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.2.6](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.5...@sapphire/snowflake@1.2.6) (2021-03-16)
+
+### Bug Fixes
+
+-   remove terser from all packages ([#79](https://github.com/sapphiredev/utilities/issues/79)) ([1cfe4e7](https://github.com/sapphiredev/utilities/commit/1cfe4e7c804e62c142495686d2b83b81d0026c02))
+
+## [1.2.5](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.4...@sapphire/snowflake@1.2.5) (2021-02-16)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.2.4](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.3...@sapphire/snowflake@1.2.4) (2021-01-16)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.2.3](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.2...@sapphire/snowflake@1.2.3) (2021-01-01)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.2.2](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.1...@sapphire/snowflake@1.2.2) (2020-12-26)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+## [1.2.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.2.0...@sapphire/snowflake@1.2.1) (2020-12-22)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+# [1.2.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.1.0...@sapphire/snowflake@1.2.0) (2020-11-15)
+
+### Bug Fixes
+
+-   **snowflake:** pass keep_classnames to terser ([76ea062](https://github.com/sapphiredev/utilities/commit/76ea062d07000b169d9781f1a199b85ad3db0ba6))
+-   **snowflake:** pass keep_fnames to terser ([b52aa76](https://github.com/sapphiredev/utilities/commit/b52aa764d8b02535496e0ceea3204a37552ce3d1))
+
+### Features
+
+-   added time-utilities package ([#26](https://github.com/sapphiredev/utilities/issues/26)) ([f17a333](https://github.com/sapphiredev/utilities/commit/f17a3339667a452e8745fad7884272176e5d65e8))
+
+# [1.1.0](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.0.1...@sapphire/snowflake@1.1.0) (2020-11-04)
+
+### Bug Fixes
+
+-   **ratelimits,snowflake,utilities:** fixed esm output target ([9fdab3f](https://github.com/sapphiredev/utilities/commit/9fdab3fca283c8c0b47cc32661c5cf8e0a5e583c))
+-   **snowflake:** properly specify ESM and CommonJS exports ([e3278e6](https://github.com/sapphiredev/utilities/commit/e3278e6868a4f31d5b2a100710bcbce2b79bc218))
+
+### Features
+
+-   added ratelimits package ([#15](https://github.com/sapphiredev/utilities/issues/15)) ([e0ae18c](https://github.com/sapphiredev/utilities/commit/e0ae18c5e1d0ae4e68a982829f1cf251fddfc80d))
+
+## [1.0.1](https://github.com/sapphiredev/utilities/compare/@sapphire/snowflake@1.0.0...@sapphire/snowflake@1.0.1) (2020-09-20)
+
+**Note:** Version bump only for package @sapphire/snowflake
+
+# 1.0.0 (2020-09-05)
+
+### Features
+
+-   implement snowflake ([5ba4e2d](https://github.com/sapphiredev/utilities/commit/5ba4e2d82557dd4ff60ffe891a7b46e46373bea2))
+-   **decorators:** add decorators package ([#4](https://github.com/sapphiredev/utilities/issues/4)) ([677b3e5](https://github.com/sapphiredev/utilities/commit/677b3e59d5c6160cbe6fb410821cadd7c0f00e3c))
